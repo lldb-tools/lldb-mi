@@ -6,7 +6,6 @@ services:
 arch:
   packages:
   - lldb
-  - llvm-libs
   - llvm
   - clang
   - ninja

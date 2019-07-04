@@ -9,8 +9,6 @@ cd ..
 mkdir build
 cd build
 
-ls /usr/lib/cmake/llvm/
-
 # Build lldb-mi
-cmake -DLLVM_DIR="/usr/lib/cmake/llvm/" -GNinja ..
+cmake  -GNinja ..
 ninja
