@@ -80,8 +80,7 @@ bool CMICmdCmdBreakInsert::ParseArgs() {
   // Not implemented m_setCmdArgs.Add(new CMICmdArgValOptionShort(
   // m_constStrArgNamedHWBrkPt, false, false));
   m_setCmdArgs.Add(new CMICmdArgValOptionShort(
-      m_constStrArgNamedPendinfBrkPt, false, true,
-      CMICmdArgValListBase::eArgValType_StringQuotedNumberPath, 1));
+      m_constStrArgNamedPendinfBrkPt, false, true));
   m_setCmdArgs.Add(new CMICmdArgValOptionShort(m_constStrArgNamedDisableBrkPt,
                                                false, false));
   // Not implemented m_setCmdArgs.Add(new CMICmdArgValOptionShort(
