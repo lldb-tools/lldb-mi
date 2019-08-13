@@ -234,7 +234,6 @@ bool CMICmdCmdDataEvaluateExpression::HaveInvalidCharacterInExpression(
   return bFoundInvalidCharInExpression;
 }
 
-
 //++
 // Details: CMICmdCmdDataDisassemble constructor.
 // Type:    Method.
@@ -407,8 +406,7 @@ bool CMICmdCmdDataDisassemble::Execute() {
 
       // MI "src_and_asm_line={line=\"%u\",file=\"%s\",line_asm_insn=[ ],
       // fullname=\"%s\"}"
-      const CMICmnMIValueConst miValueConst(
-          CMIUtilString::Format("%u", nLine));
+      const CMICmnMIValueConst miValueConst(CMIUtilString::Format("%u", nLine));
       const CMICmnMIValueResult miValueResult("line", miValueConst);
       CMICmnMIValueTuple miValueTuple2(miValueResult);
       const CMICmnMIValueConst miValueConst2(pFileName);
@@ -463,7 +461,6 @@ bool CMICmdCmdDataDisassemble::Acknowledge() {
 CMICmdBase *CMICmdCmdDataDisassemble::CreateSelf() {
   return new CMICmdCmdDataDisassemble();
 }
-
 
 //++
 // Details: CMICmdCmdDataReadMemoryBytes constructor.
@@ -706,7 +703,6 @@ CMICmdBase *CMICmdCmdDataReadMemoryBytes::CreateSelf() {
   return new CMICmdCmdDataReadMemoryBytes();
 }
 
-
 //++
 // Details: CMICmdCmdDataReadMemory constructor.
 // Type:    Method.
@@ -783,7 +779,6 @@ bool CMICmdCmdDataReadMemory::Acknowledge() {
 CMICmdBase *CMICmdCmdDataReadMemory::CreateSelf() {
   return new CMICmdCmdDataReadMemory();
 }
-
 
 //++
 // Details: CMICmdCmdDataListRegisterNames constructor.
@@ -957,7 +952,6 @@ CMICmdCmdDataListRegisterNames::GetRegister(const MIuint vRegisterIndex) const {
 
   return lldb::SBValue();
 }
-
 
 //++
 // Details: CMICmdCmdDataListRegisterValues constructor.
@@ -1177,7 +1171,6 @@ void CMICmdCmdDataListRegisterValues::AddToOutput(
   m_miValueList.Add(miValueTuple);
 }
 
-
 //++
 // Details: CMICmdCmdDataListRegisterChanged constructor.
 // Type:    Method.
@@ -1252,7 +1245,6 @@ bool CMICmdCmdDataListRegisterChanged::Acknowledge() {
 CMICmdBase *CMICmdCmdDataListRegisterChanged::CreateSelf() {
   return new CMICmdCmdDataListRegisterChanged();
 }
-
 
 //++
 // Details: CMICmdCmdDataWriteMemoryBytes constructor.
@@ -1357,7 +1349,6 @@ bool CMICmdCmdDataWriteMemoryBytes::Acknowledge() {
 CMICmdBase *CMICmdCmdDataWriteMemoryBytes::CreateSelf() {
   return new CMICmdCmdDataWriteMemoryBytes();
 }
-
 
 //++
 // Details: CMICmdCmdDataWriteMemory constructor.
@@ -1507,7 +1498,6 @@ CMICmdBase *CMICmdCmdDataWriteMemory::CreateSelf() {
   return new CMICmdCmdDataWriteMemory();
 }
 
-
 //++
 // Details: CMICmdCmdDataInfoLine constructor.
 // Type:    Method.
@@ -1605,7 +1595,7 @@ bool CMICmdCmdDataInfoLine::Execute() {
         target.FindCompileUnits(lldb::SBFileSpec(strFile.c_str(), false));
     for (uint32_t i = 0, e = sc_cu_list.GetSize(); i < e; ++i) {
       const lldb::SBCompileUnit &cu =
-        sc_cu_list.GetContextAtIndex(i).GetCompileUnit();
+          sc_cu_list.GetContextAtIndex(i).GetCompileUnit();
       // Break if we have already found requested line.
       if (found_line)
         break;
@@ -1627,12 +1617,12 @@ bool CMICmdCmdDataInfoLine::Execute() {
   }
   // Start address.
   m_resultRecord.Add(CMICmnMIValueResult(
-      "start", CMICmnMIValueConst(IntToHexAddrStr(
-               line.GetStartAddress().GetFileAddress()))));
+      "start", CMICmnMIValueConst(
+                   IntToHexAddrStr(line.GetStartAddress().GetFileAddress()))));
   // End address.
-  m_resultRecord.Add(CMICmnMIValueResult(
-      "end", CMICmnMIValueConst(IntToHexAddrStr(
-             line.GetEndAddress().GetFileAddress()))));
+  m_resultRecord.Add(
+      CMICmnMIValueResult("end", CMICmnMIValueConst(IntToHexAddrStr(
+                                     line.GetEndAddress().GetFileAddress()))));
   // File.
   std::unique_ptr<char[]> upPath(new char[PATH_MAX]);
   line.GetFileSpec().GetPath(upPath.get(), PATH_MAX);

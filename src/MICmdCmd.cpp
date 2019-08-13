@@ -87,7 +87,6 @@ CMICmdBase *CMICmdCmdEnablePrettyPrinting::CreateSelf() {
   return new CMICmdCmdEnablePrettyPrinting();
 }
 
-
 //++
 // Details: CMICmdCmdSource constructor.
 // Type:    Method.

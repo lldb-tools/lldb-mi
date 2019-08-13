@@ -115,7 +115,6 @@ bool CMICmdCmdGdbExit::Acknowledge() {
 //--
 CMICmdBase *CMICmdCmdGdbExit::CreateSelf() { return new CMICmdCmdGdbExit(); }
 
-
 //++
 // Details: CMICmdCmdListThreadGroups constructor.
 // Type:    Method.
@@ -326,8 +325,7 @@ bool CMICmdCmdListThreadGroups::Acknowledge() {
       const char *pDir = sbTrgt.GetExecutable().GetDirectory();
       const char *pFileName = sbTrgt.GetExecutable().GetFilename();
       const CMIUtilString strFile(
-          CMIUtilString::Format("%s/%s",
-                                CMIUtilString::WithNullAsEmpty(pDir),
+          CMIUtilString::Format("%s/%s", CMIUtilString::WithNullAsEmpty(pDir),
                                 CMIUtilString::WithNullAsEmpty(pFileName)));
       const CMICmnMIValueConst miValueConst4(strFile);
       const CMICmnMIValueResult miValueResult4("executable", miValueConst4);
@@ -385,7 +383,6 @@ bool CMICmdCmdListThreadGroups::Acknowledge() {
 CMICmdBase *CMICmdCmdListThreadGroups::CreateSelf() {
   return new CMICmdCmdListThreadGroups();
 }
-
 
 //++
 // Details: CMICmdCmdInterpreterExec constructor.
@@ -477,8 +474,10 @@ bool CMICmdCmdInterpreterExec::Acknowledge() {
     const CMIUtilString line(m_lldbResult.GetOutput());
     const bool bEscapeQuotes(true);
     CMICmnMIValueConst miValueConst(line.Escape(bEscapeQuotes));
-    CMICmnMIOutOfBandRecord miOutOfBandRecord(CMICmnMIOutOfBandRecord::eOutOfBand_ConsoleStreamOutput, miValueConst);
-    const bool bOk = CMICmnStreamStdout::TextToStdout(miOutOfBandRecord.GetString());
+    CMICmnMIOutOfBandRecord miOutOfBandRecord(
+        CMICmnMIOutOfBandRecord::eOutOfBand_ConsoleStreamOutput, miValueConst);
+    const bool bOk =
+        CMICmnStreamStdout::TextToStdout(miOutOfBandRecord.GetString());
     if (!bOk)
       return MIstatus::failure;
   }
@@ -486,8 +485,10 @@ bool CMICmdCmdInterpreterExec::Acknowledge() {
     const CMIUtilString line(m_lldbResult.GetError());
     const bool bEscapeQuotes(true);
     CMICmnMIValueConst miValueConst(line.Escape(bEscapeQuotes));
-    CMICmnMIOutOfBandRecord miOutOfBandRecord(CMICmnMIOutOfBandRecord::eOutOfBand_LogStreamOutput, miValueConst);
-    const bool bOk = CMICmnStreamStdout::TextToStdout(miOutOfBandRecord.GetString());
+    CMICmnMIOutOfBandRecord miOutOfBandRecord(
+        CMICmnMIOutOfBandRecord::eOutOfBand_LogStreamOutput, miValueConst);
+    const bool bOk =
+        CMICmnStreamStdout::TextToStdout(miOutOfBandRecord.GetString());
     if (!bOk)
       return MIstatus::failure;
   }
@@ -511,7 +512,6 @@ bool CMICmdCmdInterpreterExec::Acknowledge() {
 CMICmdBase *CMICmdCmdInterpreterExec::CreateSelf() {
   return new CMICmdCmdInterpreterExec();
 }
-
 
 //++
 // Details: CMICmdCmdInferiorTtySet constructor.

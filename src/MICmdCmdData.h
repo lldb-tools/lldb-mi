@@ -38,9 +38,9 @@
 // In-house headers:
 #include "MICmdBase.h"
 #include "MICmnLLDBDebugSessionInfoVarObj.h"
+#include "MICmnMIResultRecord.h"
 #include "MICmnMIValueList.h"
 #include "MICmnMIValueTuple.h"
-#include "MICmnMIResultRecord.h"
 
 //++
 //============================================================================

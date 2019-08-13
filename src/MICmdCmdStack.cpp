@@ -144,7 +144,6 @@ CMICmdBase *CMICmdCmdStackInfoDepth::CreateSelf() {
   return new CMICmdCmdStackInfoDepth();
 }
 
-
 //++
 // Details: CMICmdCmdStackInfoFrame constructor.
 // Type:    Method.
@@ -245,7 +244,6 @@ bool CMICmdCmdStackInfoFrame::Acknowledge() {
 CMICmdBase *CMICmdCmdStackInfoFrame::CreateSelf() {
   return new CMICmdCmdStackInfoFrame();
 }
-
 
 //++
 // Details: CMICmdCmdStackListFrames constructor.
@@ -426,7 +424,6 @@ bool CMICmdCmdStackListFrames::Acknowledge() {
 CMICmdBase *CMICmdCmdStackListFrames::CreateSelf() {
   return new CMICmdCmdStackListFrames();
 }
-
 
 //++
 // Details: CMICmdCmdStackListArguments constructor.
@@ -612,7 +609,6 @@ CMICmdBase *CMICmdCmdStackListArguments::CreateSelf() {
   return new CMICmdCmdStackListArguments();
 }
 
-
 //++
 // Details: CMICmdCmdStackListLocals constructor.
 // Type:    Method.
@@ -773,7 +769,6 @@ bool CMICmdCmdStackListLocals::Acknowledge() {
 CMICmdBase *CMICmdCmdStackListLocals::CreateSelf() {
   return new CMICmdCmdStackListLocals();
 }
-
 
 //++
 // Details: CMICmdCmdStackListVariables constructor.
@@ -936,7 +931,6 @@ bool CMICmdCmdStackListVariables::Acknowledge() {
 CMICmdBase *CMICmdCmdStackListVariables::CreateSelf() {
   return new CMICmdCmdStackListVariables();
 }
-
 
 //++
 // Details: CMICmdCmdStackSelectFrame constructor.

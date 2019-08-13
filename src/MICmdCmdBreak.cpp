@@ -79,8 +79,8 @@ bool CMICmdCmdBreakInsert::ParseArgs() {
       new CMICmdArgValOptionShort(m_constStrArgNamedTempBrkPt, false, true));
   // Not implemented m_setCmdArgs.Add(new CMICmdArgValOptionShort(
   // m_constStrArgNamedHWBrkPt, false, false));
-  m_setCmdArgs.Add(new CMICmdArgValOptionShort(
-      m_constStrArgNamedPendinfBrkPt, false, true));
+  m_setCmdArgs.Add(
+      new CMICmdArgValOptionShort(m_constStrArgNamedPendinfBrkPt, false, true));
   m_setCmdArgs.Add(new CMICmdArgValOptionShort(m_constStrArgNamedDisableBrkPt,
                                                false, false));
   // Not implemented m_setCmdArgs.Add(new CMICmdArgValOptionShort(
@@ -162,7 +162,8 @@ bool CMICmdCmdBreakInsert::Execute() {
     m_bBrkPtIsPending = pArgPendingBrkPt->GetFound();
     if (!m_bBrkPtIsPending) {
       CMIUtilString pending;
-      if (m_rLLDBDebugSessionInfo.SharedDataRetrieve("breakpoint.pending", pending)) {
+      if (m_rLLDBDebugSessionInfo.SharedDataRetrieve("breakpoint.pending",
+                                                     pending)) {
         m_bBrkPtIsPending = pending == "on";
       }
     }
@@ -364,7 +365,6 @@ CMICmdBase *CMICmdCmdBreakInsert::CreateSelf() {
   return new CMICmdCmdBreakInsert();
 }
 
-
 //++
 // Details: CMICmdCmdBreakDelete constructor.
 // Type:    Method.
@@ -475,7 +475,6 @@ bool CMICmdCmdBreakDelete::Acknowledge() {
 CMICmdBase *CMICmdCmdBreakDelete::CreateSelf() {
   return new CMICmdCmdBreakDelete();
 }
-
 
 //++
 // Details: CMICmdCmdBreakDisable constructor.
@@ -599,7 +598,6 @@ CMICmdBase *CMICmdCmdBreakDisable::CreateSelf() {
   return new CMICmdCmdBreakDisable();
 }
 
-
 //++
 // Details: CMICmdCmdBreakEnable constructor.
 // Type:    Method.
@@ -722,7 +720,6 @@ CMICmdBase *CMICmdCmdBreakEnable::CreateSelf() {
   return new CMICmdCmdBreakEnable();
 }
 
-
 //++
 // Details: CMICmdCmdBreakAfter constructor.
 // Type:    Method.
@@ -841,7 +838,6 @@ bool CMICmdCmdBreakAfter::Acknowledge() {
 CMICmdBase *CMICmdCmdBreakAfter::CreateSelf() {
   return new CMICmdCmdBreakAfter();
 }
-
 
 //++
 // Details: CMICmdCmdBreakCondition constructor.

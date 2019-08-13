@@ -22,7 +22,7 @@
 #include <io.h>
 #else
 #include <unistd.h>
-#endif              // _WIN32
+#endif // _WIN32
 
 // In-house headers:
 #include "MICmnLLDBDebugSessionInfo.h"
@@ -1370,11 +1370,10 @@ bool CMICmnLLDBDebuggerHandleEvents::MiStoppedAtBreakPoint(
   // "\",func=\"%s\",args=[],file=\"%s\",fullname=\"%s\",line=\"%d\"}
   if (bOk) {
     CMICmnMIValueTuple miValueTuple;
-    bOk = bOk &&
-          rSessionInfo.MIResponseFormFrameInfo(
-              thread, 0,
-              CMICmnLLDBDebugSessionInfo::eFrameInfoFormat_AllArguments,
-              miValueTuple);
+    bOk = bOk && rSessionInfo.MIResponseFormFrameInfo(
+                     thread, 0,
+                     CMICmnLLDBDebugSessionInfo::eFrameInfoFormat_AllArguments,
+                     miValueTuple);
     const CMICmnMIValueResult miValueResult8("frame", miValueTuple);
     miOutOfBandRecord.Add(miValueResult8);
   }

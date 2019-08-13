@@ -297,7 +297,6 @@ void CMICmdCmdVarCreate::CompleteSBValue(lldb::SBValue &vrwValue) {
   }
 }
 
-
 //++
 // Details: CMICmdCmdVarUpdate constructor.
 // Type:    Method.
@@ -509,7 +508,6 @@ bool CMICmdCmdVarUpdate::ExamineSBValueForChange(lldb::SBValue &vrwValue,
   return MIstatus::success;
 }
 
-
 //++
 // Details: CMICmdCmdVarDelete constructor.
 // Type:    Method.
@@ -599,7 +597,6 @@ bool CMICmdCmdVarDelete::Acknowledge() {
 CMICmdBase *CMICmdCmdVarDelete::CreateSelf() {
   return new CMICmdCmdVarDelete();
 }
-
 
 //++
 // Details: CMICmdCmdVarAssign constructor.
@@ -727,7 +724,6 @@ bool CMICmdCmdVarAssign::Acknowledge() {
 CMICmdBase *CMICmdCmdVarAssign::CreateSelf() {
   return new CMICmdCmdVarAssign();
 }
-
 
 //++
 // Details: CMICmdCmdVarSetFormat constructor.
@@ -864,7 +860,6 @@ bool CMICmdCmdVarSetFormat::Acknowledge() {
 CMICmdBase *CMICmdCmdVarSetFormat::CreateSelf() {
   return new CMICmdCmdVarSetFormat();
 }
-
 
 //++
 // Details: CMICmdCmdVarListChildren constructor.
@@ -1078,7 +1073,6 @@ CMICmdBase *CMICmdCmdVarListChildren::CreateSelf() {
   return new CMICmdCmdVarListChildren();
 }
 
-
 //++
 // Details: CMICmdCmdVarEvaluateExpression constructor.
 // Type:    Method.
@@ -1201,7 +1195,6 @@ bool CMICmdCmdVarEvaluateExpression::Acknowledge() {
 CMICmdBase *CMICmdCmdVarEvaluateExpression::CreateSelf() {
   return new CMICmdCmdVarEvaluateExpression();
 }
-
 
 //++
 // Details: CMICmdCmdVarInfoPathExpression constructor.
@@ -1356,7 +1349,6 @@ bool CMICmdCmdVarInfoPathExpression::Acknowledge() {
 CMICmdBase *CMICmdCmdVarInfoPathExpression::CreateSelf() {
   return new CMICmdCmdVarInfoPathExpression();
 }
-
 
 //++
 // Details: CMICmdCmdVarShowAttributes constructor.

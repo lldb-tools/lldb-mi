@@ -541,9 +541,8 @@ bool CMIDriverMgr::ParseArgs(const int argc, const char *argv[],
   // Handle --version option (ignore the --interpreter option if present)
   if (bHaveArgVersion) {
     vwbExiting = true;
-    bOk = bOk &&
-          CMICmnStreamStdout::Instance().WriteMIResponse(
-              MIRSRC(IDE_MI_VERSION_GDB));
+    bOk = bOk && CMICmnStreamStdout::Instance().WriteMIResponse(
+                     MIRSRC(IDE_MI_VERSION_GDB));
     return bOk;
   }
 
@@ -560,9 +559,8 @@ bool CMIDriverMgr::ParseArgs(const int argc, const char *argv[],
   // '--interpreter' help the LLDB driver is working and so help is for that.
   if (bHaveArgHelp && bHaveArgInterpret) {
     vwbExiting = true;
-    bOk = bOk &&
-          CMICmnStreamStdout::Instance().WriteMIResponse(
-              GetHelpOnCmdLineArgOptions());
+    bOk = bOk && CMICmnStreamStdout::Instance().WriteMIResponse(
+                     GetHelpOnCmdLineArgOptions());
     return bOk;
   }
 
@@ -615,17 +613,23 @@ CMIUtilString CMIDriverMgr::GetAppVersion() const {
 //--
 CMIUtilString CMIDriverMgr::GetHelpOnCmdLineArgOptions() const {
   const CMIUtilString pHelp[] = {
-      MIRSRC(IDE_MI_APP_DESCRIPTION), MIRSRC(IDE_MI_APP_INFORMATION),
-      MIRSRC(IDE_MI_APP_ARG_USAGE), MIRSRC(IDE_MI_APP_ARG_HELP),
-      MIRSRC(IDE_MI_APP_ARG_VERSION), MIRSRC(IDE_MI_APP_ARG_VERSION_LONG),
-      MIRSRC(IDE_MI_APP_ARG_INTERPRETER), MIRSRC(IDE_MI_APP_ARG_SOURCE),
+      MIRSRC(IDE_MI_APP_DESCRIPTION),
+      MIRSRC(IDE_MI_APP_INFORMATION),
+      MIRSRC(IDE_MI_APP_ARG_USAGE),
+      MIRSRC(IDE_MI_APP_ARG_HELP),
+      MIRSRC(IDE_MI_APP_ARG_VERSION),
+      MIRSRC(IDE_MI_APP_ARG_VERSION_LONG),
+      MIRSRC(IDE_MI_APP_ARG_INTERPRETER),
+      MIRSRC(IDE_MI_APP_ARG_SOURCE),
       MIRSRC(IDE_MI_APP_ARG_EXECUTEABLE),
       MIRSRC(IDE_MI_APP_ARG_SYNCHRONOUS),
       CMIUtilString::Format(
           MIRSRC(IDE_MI_APP_ARG_APP_LOG),
           CMICmnLogMediumFile::Instance().GetFileName().c_str()),
-      MIRSRC(IDE_MI_APP_ARG_APP_LOG_DIR), MIRSRC(IDE_MI_APP_ARG_EXECUTABLE),
-      MIRSRC(IDS_CMD_QUIT_HELP), MIRSRC(IDE_MI_APP_ARG_EXAMPLE)};
+      MIRSRC(IDE_MI_APP_ARG_APP_LOG_DIR),
+      MIRSRC(IDE_MI_APP_ARG_EXECUTABLE),
+      MIRSRC(IDS_CMD_QUIT_HELP),
+      MIRSRC(IDE_MI_APP_ARG_EXAMPLE)};
   const MIuint nHelpItems = sizeof pHelp / sizeof pHelp[0];
   CMIUtilString strHelp;
   for (MIuint i = 0; i < nHelpItems; i++) {
