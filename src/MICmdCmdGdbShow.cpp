@@ -318,7 +318,8 @@ bool CMICmdCmdGdbShow::OptionFnLanguage(
 }
 
 //++
-// Details: Carry out work to complete the GDB show option 'disassembly-flavor' to prepare
+// Details: Carry out work to complete the GDB show option 'disassembly-flavor'
+// to prepare
 //          and send back the requested information.
 // Type:    Method.
 // Args:    vrWords - (R) List of additional parameters used by this option.
@@ -326,13 +327,15 @@ bool CMICmdCmdGdbShow::OptionFnLanguage(
 //          MIstatus::failure - Function failed.
 // Throws:  None.
 //--
-bool CMICmdCmdGdbShow::OptionFnDisassemblyFlavor(const CMIUtilString::VecString_t &vrWords) {
+bool CMICmdCmdGdbShow::OptionFnDisassemblyFlavor(
+    const CMIUtilString::VecString_t &vrWords) {
   MIunused(vrWords);
 
   // Get current disassembly flavor
   lldb::SBDebugger &rDbgr = m_rLLDBDebugSessionInfo.GetDebugger();
-  m_strValue = lldb::SBDebugger::GetInternalVariableValue("target.x86-disassembly-flavor",
-                                                          rDbgr.GetInstanceName()).GetStringAtIndex(0);
+  m_strValue = lldb::SBDebugger::GetInternalVariableValue(
+                   "target.x86-disassembly-flavor", rDbgr.GetInstanceName())
+                   .GetStringAtIndex(0);
   return MIstatus::success;
 }
 

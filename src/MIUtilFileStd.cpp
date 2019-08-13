@@ -82,7 +82,7 @@ bool CMIUtilFileStd::CreateWrite(const CMIUtilString &vFileNamePath,
 #if !defined(_MSC_VER)
   // Open with 'write' and 'binary' mode
   m_pFileHandle = llvm::sys::RetryAfterSignal(nullptr, ::fopen,
-      vFileNamePath.c_str(), "wb");
+                                              vFileNamePath.c_str(), "wb");
 #else
   // Open a file with exclusive write and shared read permissions
   std::wstring path;
@@ -220,8 +220,8 @@ bool CMIUtilFileStd::IsFileExist(const CMIUtilString &vFileNamePath) const {
     return false;
 
   FILE *pTmp = nullptr;
-  pTmp = llvm::sys::RetryAfterSignal(nullptr, ::fopen,
-      vFileNamePath.c_str(), "wb");
+  pTmp = llvm::sys::RetryAfterSignal(nullptr, ::fopen, vFileNamePath.c_str(),
+                                     "wb");
   if (pTmp != nullptr) {
     ::fclose(pTmp);
     return true;

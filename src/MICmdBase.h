@@ -79,10 +79,11 @@ public:
   // Methods:
 protected:
   void SetError(const CMIUtilString &rErrMsg);
-  bool HandleSBError(const lldb::SBError &error,
-                     const std::function<bool()> &successHandler =
-                     [] { return MIstatus::success; },
-                     const std::function<void()> &errorHandler = [] {});
+  bool HandleSBError(
+      const lldb::SBError &error,
+      const std::function<bool()> &successHandler =
+          [] { return MIstatus::success; },
+      const std::function<void()> &errorHandler = [] {});
   bool HandleSBErrorWithSuccess(const lldb::SBError &error,
                                 const std::function<bool()> &successHandler);
   bool HandleSBErrorWithFailure(const lldb::SBError &error,

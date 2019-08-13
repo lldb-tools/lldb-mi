@@ -9,26 +9,27 @@
 // Overview:    CMICmdCmdSymbolListLines     implementation.
 
 // Third Party Headers:
-#include "llvm/ADT/Twine.h"
 #include "lldb/API/SBAddress.h"
-#include "lldb/API/SBLineEntry.h"
-#include "lldb/API/SBFileSpec.h"
 #include "lldb/API/SBCompileUnit.h"
+#include "lldb/API/SBFileSpec.h"
+#include "lldb/API/SBLineEntry.h"
 #include "lldb/API/SBSymbolContext.h"
 #include "lldb/API/SBSymbolContextList.h"
+#include "llvm/ADT/Twine.h"
 
 // In-house headers:
 #include "MICmdArgValFile.h"
 #include "MICmdCmdSymbol.h"
 #include "MICmnLLDBDebugSessionInfo.h"
 #include "MICmnMIResultRecord.h"
-#include "MICmnMIValueTuple.h"
 #include "MICmnMIValueResult.h"
+#include "MICmnMIValueTuple.h"
 
 namespace {
-const CMICmnMIValueTuple
-CreateMITuplePCLine(const uint32_t addr, const uint32_t line_number) {
-  const CMICmnMIValueConst miValueConstAddr("0x" + llvm::Twine::utohexstr(addr).str());
+const CMICmnMIValueTuple CreateMITuplePCLine(const uint32_t addr,
+                                             const uint32_t line_number) {
+  const CMICmnMIValueConst miValueConstAddr("0x" +
+                                            llvm::Twine::utohexstr(addr).str());
   const CMICmnMIValueConst miValueConstLine(llvm::Twine(line_number).str());
   const CMICmnMIValueResult miValueResultAddr("pc", miValueConstAddr);
   const CMICmnMIValueResult miValueResultLine("line", miValueConstLine);
@@ -132,8 +133,7 @@ bool CMICmdCmdSymbolListLines::Execute() {
         // We have a matching line.
         found_something = true;
         m_resultList.Add(CreateMITuplePCLine(
-            line_start_address.GetFileAddress(),
-            line.GetLine()));
+            line_start_address.GetFileAddress(), line.GetLine()));
       }
     }
   }

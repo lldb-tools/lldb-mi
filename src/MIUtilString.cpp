@@ -36,7 +36,7 @@ CMIUtilString::CMIUtilString() : std::string() {}
 // Throws:  None.
 //--
 CMIUtilString::CMIUtilString(const char *vpData)
-  : std::string(WithNullAsEmpty(vpData)) {}
+    : std::string(WithNullAsEmpty(vpData)) {}
 
 //++
 // Details: CMIUtilString constructor.

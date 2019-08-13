@@ -128,11 +128,12 @@ bool CMICmnLLDBUtilSBValue::GetSimpleValue(const bool vbHandleArrayType,
                                            CMIUtilString &vwrValue) const {
   const MIuint nChildren = m_rValue.GetNumChildren();
   if (nChildren == 0) {
-    vwrValue = GetValueSummary(!m_bHandleCharType && IsCharType(), kUnknownValue);
+    vwrValue =
+        GetValueSummary(!m_bHandleCharType && IsCharType(), kUnknownValue);
     return MIstatus::success;
   } else if (IsPointerType()) {
-    vwrValue =
-        GetValueSummary(!m_bHandleCharType && IsPointeeCharType(), kUnknownValue);
+    vwrValue = GetValueSummary(!m_bHandleCharType && IsPointeeCharType(),
+                               kUnknownValue);
     return MIstatus::success;
   } else if (IsArrayType()) {
     CMICmnLLDBDebugSessionInfo &rSessionInfo(

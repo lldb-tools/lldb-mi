@@ -37,7 +37,7 @@ public:
   bool ThreadAllTerminate(); // Ask all threads to stop (caution)
   template <typename T> // Ask the thread manager to start and stop threads on
                         // our behalf
-                        bool ThreadStart(T &vrwObject);
+  bool ThreadStart(T &vrwObject);
 
   // Typedef:
 private:

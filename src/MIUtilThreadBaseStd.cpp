@@ -186,7 +186,6 @@ void CMIUtilThreadActiveObjBase::ThreadManage() {
   m_thread.Finish();
 }
 
-
 //
 CMIUtilThread::CMIUtilThread() : m_pThread(nullptr), m_bIsActive(false) {}
 
@@ -271,7 +270,6 @@ bool CMIUtilThread::Start(FnThreadProc vpFn, void *vpArg) {
 
   return MIstatus::success;
 }
-
 
 //++
 // Details: Take resource.
