@@ -51,8 +51,9 @@ static const CMIUtilString
 BuildResultRecord(const CMIUtilString &vrToken,
                   CMICmnMIResultRecord::ResultClass_e veType) {
   const char *pStrResultRecord = MapResultClassToResultClassText(veType);
-  return CMIUtilString::Format("%s^%s", vrToken.c_str(),
-                               CMIUtilString::WithNullAsEmpty(pStrResultRecord));
+  return CMIUtilString::Format(
+      "%s^%s", vrToken.c_str(),
+      CMIUtilString::WithNullAsEmpty(pStrResultRecord));
 }
 
 //++

@@ -58,7 +58,6 @@ void CMIUtilDebug::WaitForDbgAttachInfinteLoop() {
   }
 }
 
-
 // Instantiations:
 CMICmnLog &CMIUtilDebugFnTrace::ms_rLog = CMICmnLog::Instance();
 MIuint CMIUtilDebugFnTrace::ms_fnDepthCnt = 0;

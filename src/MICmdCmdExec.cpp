@@ -131,9 +131,9 @@ bool CMICmdCmdExecRun::Execute() {
   const auto successHandler = [this] {
     if (!CMIDriver::Instance().SetDriverStateRunningDebugging()) {
       const CMIUtilString &rErrMsg(CMIDriver::Instance().GetErrorDescription());
-      SetError(CMIUtilString::Format(
-          MIRSRC(IDS_CMD_ERR_SET_NEW_DRIVER_STATE),
-          m_cmdData.strMiCmd.c_str(), rErrMsg.c_str()));
+      SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_SET_NEW_DRIVER_STATE),
+                                     m_cmdData.strMiCmd.c_str(),
+                                     rErrMsg.c_str()));
       return MIstatus::failure;
     }
     return MIstatus::success;
@@ -186,7 +186,6 @@ bool CMICmdCmdExecRun::Acknowledge() {
 //--
 CMICmdBase *CMICmdCmdExecRun::CreateSelf() { return new CMICmdCmdExecRun(); }
 
-
 //++
 // Details: CMICmdCmdExecContinue constructor.
 // Type:    Method.
@@ -227,9 +226,9 @@ bool CMICmdCmdExecContinue::Execute() {
     // CODETAG_DEBUG_SESSION_RUNNING_PROG_RECEIVED_SIGINT_PAUSE_PROGRAM
     if (!CMIDriver::Instance().SetDriverStateRunningDebugging()) {
       const CMIUtilString &rErrMsg(CMIDriver::Instance().GetErrorDescription());
-      SetError(CMIUtilString::Format(
-          MIRSRC(IDS_CMD_ERR_SET_NEW_DRIVER_STATE),
-          m_cmdData.strMiCmd.c_str(), rErrMsg.c_str()));
+      SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_SET_NEW_DRIVER_STATE),
+                                     m_cmdData.strMiCmd.c_str(),
+                                     rErrMsg.c_str()));
       return MIstatus::failure;
     }
     return MIstatus::success;
@@ -268,7 +267,6 @@ bool CMICmdCmdExecContinue::Acknowledge() {
 CMICmdBase *CMICmdCmdExecContinue::CreateSelf() {
   return new CMICmdCmdExecContinue();
 }
-
 
 //++
 // Details: CMICmdCmdExecNext constructor.
@@ -338,7 +336,8 @@ bool CMICmdCmdExecNext::Execute() {
 
   lldb::SBError error;
   if (nThreadId != UINT64_MAX) {
-    lldb::SBThread sbThread = rSessionInfo.GetProcess().GetThreadByIndexID(nThreadId);
+    lldb::SBThread sbThread =
+        rSessionInfo.GetProcess().GetThreadByIndexID(nThreadId);
     if (!sbThread.IsValid()) {
       SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_THREAD_INVALID),
                                      m_cmdData.strMiCmd.c_str(),
@@ -379,7 +378,6 @@ bool CMICmdCmdExecNext::Acknowledge() {
 // Throws:  None.
 //--
 CMICmdBase *CMICmdCmdExecNext::CreateSelf() { return new CMICmdCmdExecNext(); }
-
 
 //++
 // Details: CMICmdCmdExecStep constructor.
@@ -492,7 +490,6 @@ bool CMICmdCmdExecStep::Acknowledge() {
 //--
 CMICmdBase *CMICmdCmdExecStep::CreateSelf() { return new CMICmdCmdExecStep(); }
 
-
 //++
 // Details: CMICmdCmdExecNextInstruction constructor.
 // Type:    Method.
@@ -572,8 +569,7 @@ bool CMICmdCmdExecNextInstruction::Execute() {
     }
     sbThread.StepInstruction(true, error);
   } else
-    rSessionInfo.GetProcess().GetSelectedThread().StepInstruction(
-        true, error);
+    rSessionInfo.GetProcess().GetSelectedThread().StepInstruction(true, error);
 
   return HandleSBError(error);
 }
@@ -606,7 +602,6 @@ bool CMICmdCmdExecNextInstruction::Acknowledge() {
 CMICmdBase *CMICmdCmdExecNextInstruction::CreateSelf() {
   return new CMICmdCmdExecNextInstruction();
 }
-
 
 //++
 // Details: CMICmdCmdExecStepInstruction constructor.
@@ -687,8 +682,7 @@ bool CMICmdCmdExecStepInstruction::Execute() {
     }
     sbThread.StepInstruction(false, error);
   } else
-    rSessionInfo.GetProcess().GetSelectedThread().StepInstruction(
-        false, error);
+    rSessionInfo.GetProcess().GetSelectedThread().StepInstruction(false, error);
 
   return HandleSBError(error);
 }
@@ -721,7 +715,6 @@ bool CMICmdCmdExecStepInstruction::Acknowledge() {
 CMICmdBase *CMICmdCmdExecStepInstruction::CreateSelf() {
   return new CMICmdCmdExecStepInstruction();
 }
-
 
 //++
 // Details: CMICmdCmdExecFinish constructor.
@@ -832,7 +825,6 @@ CMICmdBase *CMICmdCmdExecFinish::CreateSelf() {
   return new CMICmdCmdExecFinish();
 }
 
-
 //++
 // Details: CMICmdCmdExecInterrupt constructor.
 // Type:    Method.
@@ -873,10 +865,9 @@ bool CMICmdCmdExecInterrupt::Execute() {
     // CODETAG_DEBUG_SESSION_RUNNING_PROG_RECEIVED_SIGINT_PAUSE_PROGRAM
     if (!CMIDriver::Instance().SetDriverStateRunningNotDebugging()) {
       const CMIUtilString &rErrMsg(CMIDriver::Instance().GetErrorDescription());
-      SetErrorDescription(CMIUtilString::Format(
-          MIRSRC(IDS_CMD_ERR_SET_NEW_DRIVER_STATE),
-          m_cmdData.strMiCmd.c_str(),
-          rErrMsg.c_str()));
+      SetErrorDescription(
+          CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_SET_NEW_DRIVER_STATE),
+                                m_cmdData.strMiCmd.c_str(), rErrMsg.c_str()));
       return MIstatus::failure;
     }
     return MIstatus::success;
@@ -915,7 +906,6 @@ bool CMICmdCmdExecInterrupt::Acknowledge() {
 CMICmdBase *CMICmdCmdExecInterrupt::CreateSelf() {
   return new CMICmdCmdExecInterrupt();
 }
-
 
 //++
 // Details: CMICmdCmdExecArguments constructor.
@@ -1027,7 +1017,6 @@ bool CMICmdCmdExecArguments::Acknowledge() {
 CMICmdBase *CMICmdCmdExecArguments::CreateSelf() {
   return new CMICmdCmdExecArguments();
 }
-
 
 //++
 // Details: CMICmdCmdExecAbort constructor.

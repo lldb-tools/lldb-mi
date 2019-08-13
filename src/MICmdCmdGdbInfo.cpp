@@ -213,11 +213,10 @@ bool CMICmdCmdGdbInfo::PrintFnSharedLibrary() {
           addrLoadSize += section.GetByteSize();
         }
       }
-      bOk = bOk &&
-        CMICmnStreamStdout::TextToStdout(CMIUtilString::Format(
-                "~\"0x%016" PRIx64 "\t0x%016" PRIx64 "\t%s\t\t%s\"", addrLoadS,
-                addrLoadS + addrLoadSize, strHasSymbols.c_str(),
-                strModuleFullPath.c_str()));
+      bOk = bOk && CMICmnStreamStdout::TextToStdout(CMIUtilString::Format(
+                       "~\"0x%016" PRIx64 "\t0x%016" PRIx64 "\t%s\t\t%s\"",
+                       addrLoadS, addrLoadS + addrLoadSize,
+                       strHasSymbols.c_str(), strModuleFullPath.c_str()));
     }
   }
 

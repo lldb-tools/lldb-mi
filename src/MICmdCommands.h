@@ -16,4 +16,4 @@ namespace MICmnCommands {
 //          Command Factory
 //--
 bool RegisterAll();
-}
+} // namespace MICmnCommands

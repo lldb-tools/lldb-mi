@@ -379,7 +379,8 @@ lldb::SBError CMIDriver::DoParseArgs(const int argc, const char *argv[],
 //          argument for a debug session. Using --interpreter on the command
 //          line does not
 //          issue additional commands to initialise a debug session.
-//          Option --synchronous disables an asynchronous mode in the lldb-mi driver.
+//          Option --synchronous disables an asynchronous mode in the lldb-mi
+//          driver.
 // Type:    Overridden.
 // Args:    argc        - (R)   An integer that contains the count of arguments
 // that follow in

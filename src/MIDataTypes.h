@@ -20,7 +20,7 @@
 // Debugging:
 #ifdef _DEBUG
 #include <crtdbg.h>
-#endif              // _DEBUG
+#endif // _DEBUG
 
 #endif // _WIN32
 
@@ -30,7 +30,7 @@
 namespace MIstatus {
 const bool success = true;
 const bool failure = false;
-}
+} // namespace MIstatus
 
 // Use to avoid "unused parameter" compiler warnings:
 #define MIunused(x) (void)x;

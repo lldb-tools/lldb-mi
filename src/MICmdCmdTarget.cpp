@@ -9,8 +9,8 @@
 // Overview:    CMICmdCmdTargetSelect           implementation.
 
 // Third Party Headers:
-#include "lldb/API/SBStream.h"
 #include "lldb/API/SBError.h"
+#include "lldb/API/SBStream.h"
 
 // In-house headers:
 #include "MICmdArgValNumber.h"

@@ -13,7 +13,7 @@
 #include <io.h>
 #else
 #include <unistd.h>
-#endif              // _WIN32
+#endif // _WIN32
 #include "lldb/API/SBBreakpointLocation.h"
 
 // In-house headers:

@@ -137,7 +137,6 @@ void CMIUtilVariant::CDataObjectBase::Destroy() {
   // Do nothing - override to implement
 }
 
-
 //++
 // Details: CDataObject copy constructor.
 // Type:    Method.
@@ -218,7 +217,6 @@ operator=(CDataObject &&vrwOther) {
   vrwOther.Destroy();
   return *this;
 }
-
 
 //++
 // Details: CMIUtilVariant constructor.

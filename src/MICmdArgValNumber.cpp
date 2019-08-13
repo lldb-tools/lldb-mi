@@ -34,11 +34,9 @@ CMICmdArgValNumber::CMICmdArgValNumber()
 // Return:  None.
 // Throws:  None.
 //--
-CMICmdArgValNumber::CMICmdArgValNumber(
-    const CMIUtilString &vrArgName, const bool vbMandatory,
-    const bool vbHandleByCmd,
-    const MIuint
-        vnNumberFormatMask /* = CMICmdArgValNumber::eArgValNumberFormat_Decimal*/)
+CMICmdArgValNumber::
+    CMICmdArgValNumber(const CMIUtilString &vrArgName, const bool vbMandatory,
+                       const bool vbHandleByCmd, const MIuint vnNumberFormatMask /* = CMICmdArgValNumber::eArgValNumberFormat_Decimal*/)
     : CMICmdArgValBaseTemplate(vrArgName, vbMandatory, vbHandleByCmd),
       m_nNumberFormatMask(vnNumberFormatMask), m_nNumber(0) {}
 

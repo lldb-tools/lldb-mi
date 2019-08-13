@@ -116,7 +116,6 @@ private:
   CDataObjectBase *m_pDataObject;
 };
 
-
 //++
 // Details: CDataObject constructor.
 // Type:    Method.
@@ -213,7 +212,6 @@ void CMIUtilVariant::CDataObject<T>::Duplicate(const CDataObject &vrOther) {
 template <typename T> void CMIUtilVariant::CDataObject<T>::Destroy() {
   CDataObjectBase::Destroy();
 }
-
 
 //++
 // Details: Assign to the variant an object of a specified type.
