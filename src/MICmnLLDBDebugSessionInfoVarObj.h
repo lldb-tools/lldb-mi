@@ -77,8 +77,6 @@ public:
   /* ctor */ CMICmnLLDBDebugSessionInfoVarObj(
       const CMICmnLLDBDebugSessionInfoVarObj &vrOther);
   /* ctor */ CMICmnLLDBDebugSessionInfoVarObj(
-      CMICmnLLDBDebugSessionInfoVarObj &vrOther);
-  /* ctor */ CMICmnLLDBDebugSessionInfoVarObj(
       CMICmnLLDBDebugSessionInfoVarObj &&vrOther);
   //
   CMICmnLLDBDebugSessionInfoVarObj &
@@ -116,8 +114,8 @@ private:
 
   // Methods:
 private:
-  bool CopyOther(const CMICmnLLDBDebugSessionInfoVarObj &vrOther);
-  bool MoveOther(CMICmnLLDBDebugSessionInfoVarObj &vrwOther);
+  void CopyOther(const CMICmnLLDBDebugSessionInfoVarObj &vrOther);
+  void MoveOther(CMICmnLLDBDebugSessionInfoVarObj &&vrwOther);
 
   // Attributes:
 private:
