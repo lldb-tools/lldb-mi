@@ -93,18 +93,6 @@ CMICmnLLDBDebugSessionInfoVarObj::CMICmnLLDBDebugSessionInfoVarObj(
 }
 
 //++
-// Details: CMICmnLLDBDebugSessionInfoVarObj copy constructor.
-// Type:    Method.
-// Args:    vrOther - (R) The object to copy from.
-// Return:  None.
-// Throws:  None.
-//--
-CMICmnLLDBDebugSessionInfoVarObj::CMICmnLLDBDebugSessionInfoVarObj(
-    CMICmnLLDBDebugSessionInfoVarObj &vrOther) {
-  CopyOther(vrOther);
-}
-
-//++
 // Details: CMICmnLLDBDebugSessionInfoVarObj move constructor.
 // Type:    Method.
 // Args:    vrwOther    - (R) The object to copy from.
@@ -113,7 +101,7 @@ CMICmnLLDBDebugSessionInfoVarObj::CMICmnLLDBDebugSessionInfoVarObj(
 //--
 CMICmnLLDBDebugSessionInfoVarObj::CMICmnLLDBDebugSessionInfoVarObj(
     CMICmnLLDBDebugSessionInfoVarObj &&vrwOther) {
-  MoveOther(vrwOther);
+  MoveOther(std::move(vrwOther));
 }
 
 //++
@@ -125,8 +113,11 @@ CMICmnLLDBDebugSessionInfoVarObj::CMICmnLLDBDebugSessionInfoVarObj(
 //--
 CMICmnLLDBDebugSessionInfoVarObj &CMICmnLLDBDebugSessionInfoVarObj::
 operator=(const CMICmnLLDBDebugSessionInfoVarObj &vrOther) {
-  CopyOther(vrOther);
+  // Check for self-assignment
+  if (this == &vrOther)
+    return *this;
 
+  CopyOther(vrOther);
   return *this;
 }
 
@@ -139,8 +130,11 @@ operator=(const CMICmnLLDBDebugSessionInfoVarObj &vrOther) {
 //--
 CMICmnLLDBDebugSessionInfoVarObj &CMICmnLLDBDebugSessionInfoVarObj::
 operator=(CMICmnLLDBDebugSessionInfoVarObj &&vrwOther) {
-  MoveOther(vrwOther);
+  // Check for self-assignment
+  if (this == &vrwOther)
+    return *this;
 
+  MoveOther(std::move(vrwOther));
   return *this;
 }
 
@@ -148,16 +142,11 @@ operator=(CMICmnLLDBDebugSessionInfoVarObj &&vrwOther) {
 // Details: Copy the other instance of that object to *this object.
 // Type:    Method.
 // Args:    vrOther - (R) The object to copy from.
-// Return:  MIstatus::success - Functional succeeded.
-//          MIstatus::failure - Functional failed.
+// Return:  None.
 // Throws:  None.
 //--
-bool CMICmnLLDBDebugSessionInfoVarObj::CopyOther(
+void CMICmnLLDBDebugSessionInfoVarObj::CopyOther(
     const CMICmnLLDBDebugSessionInfoVarObj &vrOther) {
-  // Check for self-assignment
-  if (this == &vrOther)
-    return MIstatus::success;
-
   m_eVarFormat = vrOther.m_eVarFormat;
   m_eVarType = vrOther.m_eVarType;
   m_strName = vrOther.m_strName;
@@ -165,25 +154,25 @@ bool CMICmnLLDBDebugSessionInfoVarObj::CopyOther(
   m_strNameReal = vrOther.m_strNameReal;
   m_strFormattedValue = vrOther.m_strFormattedValue;
   m_strVarObjParentName = vrOther.m_strVarObjParentName;
-
-  return MIstatus::success;
 }
 
 //++
 // Details: Move that object to *this object.
 // Type:    Method.
-// Args:    vrwOther    - (RW) The object to copy from.
-// Return:  MIstatus::success - Functional succeeded.
-//          MIstatus::failure - Functional failed.
+// Args:    vrwOther    - (RW) The object to move from.
+// Return:  None.
 // Throws:  None.
 //--
-bool CMICmnLLDBDebugSessionInfoVarObj::MoveOther(
-    CMICmnLLDBDebugSessionInfoVarObj &vrwOther) {
-  // Check for self-assignment
-  if (this == &vrwOther)
-    return MIstatus::success;
+void CMICmnLLDBDebugSessionInfoVarObj::MoveOther(
+    CMICmnLLDBDebugSessionInfoVarObj &&vrwOther) {
+  m_eVarFormat = vrwOther.m_eVarFormat;
+  m_eVarType = vrwOther.m_eVarType;
+  m_strName = std::move(vrwOther.m_strName);
+  m_SBValue = std::move(vrwOther.m_SBValue);
+  m_strNameReal = std::move(vrwOther.m_strNameReal);
+  m_strFormattedValue = std::move(vrwOther.m_strFormattedValue);
+  m_strVarObjParentName = std::move(vrwOther.m_strVarObjParentName);
 
-  CopyOther(vrwOther);
   vrwOther.m_eVarFormat = eVarFormat_Natural;
   vrwOther.m_eVarType = eVarType_Internal;
   vrwOther.m_strName.clear();
@@ -191,8 +180,6 @@ bool CMICmnLLDBDebugSessionInfoVarObj::MoveOther(
   vrwOther.m_strNameReal.clear();
   vrwOther.m_strFormattedValue.clear();
   vrwOther.m_strVarObjParentName.clear();
-
-  return MIstatus::success;
 }
 
 //++
