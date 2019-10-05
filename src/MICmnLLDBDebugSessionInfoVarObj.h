@@ -48,6 +48,17 @@ public:
     eVarType_count      // Always last one
   };
 
+  //++ ----------------------------------------------------------------------
+  // Details: Enumeration of a variable kind based on lldb_private::ValueObject
+  // derived classes.
+  //--
+  enum class valObjKind_ec {
+    // We can distinquish DynamicValue, Variable, Register, Memory, etc
+    // if we need to.
+    eValObjKind_Other = 0,
+    eValObjKind_ConstResult
+  };
+
   // Statics:
 public:
   static varFormat_e GetVarFormatForString(const CMIUtilString &vrStrFormat);
@@ -70,10 +81,11 @@ public:
   /* ctor */ CMICmnLLDBDebugSessionInfoVarObj();
   /* ctor */ CMICmnLLDBDebugSessionInfoVarObj(
       const CMIUtilString &vrStrNameReal, const CMIUtilString &vrStrName,
-      const lldb::SBValue &vrValue);
+      const lldb::SBValue &vrValue, const valObjKind_ec eValObjKind);
   /* ctor */ CMICmnLLDBDebugSessionInfoVarObj(
       const CMIUtilString &vrStrNameReal, const CMIUtilString &vrStrName,
-      const lldb::SBValue &vrValue, const CMIUtilString &vrStrVarObjParentName);
+      const lldb::SBValue &vrValue, const CMIUtilString &vrStrVarObjParentName,
+      const valObjKind_ec eValObjKind);
   /* ctor */ CMICmnLLDBDebugSessionInfoVarObj(
       const CMICmnLLDBDebugSessionInfoVarObj &vrOther);
   /* ctor */ CMICmnLLDBDebugSessionInfoVarObj(
@@ -92,6 +104,7 @@ public:
   varType_e GetType() const;
   bool SetVarFormat(const varFormat_e veVarFormat);
   const CMIUtilString &GetVarParentName() const;
+  valObjKind_ec GetValObjKind() const;
   void UpdateValue();
 
   // Overridden:
@@ -128,6 +141,7 @@ private:
   // *** Update the copy move constructors and assignment operator ***
   varFormat_e m_eVarFormat;
   varType_e m_eVarType;
+  valObjKind_ec m_eValObjKind;
   CMIUtilString m_strName;
   lldb::SBValue m_SBValue;
   CMIUtilString m_strNameReal;
@@ -135,3 +149,5 @@ private:
   CMIUtilString m_strVarObjParentName;
   // *** Update the copy move constructors and assignment operator ***
 };
+
+using ValObjKind_ec = CMICmnLLDBDebugSessionInfoVarObj::valObjKind_ec;

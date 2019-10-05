@@ -171,6 +171,7 @@ bool CMICmdCmdVarCreate::Execute() {
   lldb::SBFrame frame = bCurrentFrame ? thread.GetSelectedFrame()
                                       : thread.GetFrameAtIndex(nFrame);
   lldb::SBValue value;
+  ValObjKind_ec valueObjKind = ValObjKind_ec::eValObjKind_Other;
 
   if (rStrExpression[0] == '$') {
     const CMIUtilString rStrRegister(rStrExpression.substr(1));
@@ -185,8 +186,10 @@ bool CMICmdCmdVarCreate::Execute() {
     value = valueList.GetFirstValueByName(rStrExpression.c_str());
   }
 
-  if (!value.IsValid())
+  if (!value.IsValid()) {
     value = frame.EvaluateExpression(rStrExpression.c_str());
+    valueObjKind = ValObjKind_ec::eValObjKind_ConstResult;
+  }
 
   if (value.IsValid() && value.GetError().Success()) {
     CompleteSBValue(value);
@@ -196,8 +199,8 @@ bool CMICmdCmdVarCreate::Execute() {
 
     // This gets added to CMICmnLLDBDebugSessionInfoVarObj static container of
     // varObjs
-    CMICmnLLDBDebugSessionInfoVarObj varObj(rStrExpression, m_strVarName,
-                                            value);
+    CMICmnLLDBDebugSessionInfoVarObj varObj(rStrExpression, m_strVarName, value,
+                                            valueObjKind);
     m_strValue = varObj.GetValueFormatted();
   } else {
     m_strValue = value.GetError().GetCString();
@@ -374,6 +377,30 @@ bool CMICmdCmdVarUpdate::Execute() {
   lldb::SBValue &rValue = varObj.GetValue();
   if (!ExamineSBValueForChange(rValue, m_bValueChanged))
     return MIstatus::failure;
+
+  if (!m_bValueChanged) {
+    CMICmnLLDBDebugSessionInfo &rSessionInfo(
+        CMICmnLLDBDebugSessionInfo::Instance());
+
+    lldb::SBFrame frame =
+        rSessionInfo.GetProcess().GetSelectedThread().GetSelectedFrame();
+    if (!frame.IsValid()) {
+      SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_FRAME_INVALID),
+                                     m_constStrArgFrame.c_str()));
+      return MIstatus::failure;
+    }
+
+    const auto valObjKind = varObj.GetValObjKind();
+    if (valObjKind == ValObjKind_ec::eValObjKind_ConstResult) {
+      // This is likely an expression result and it should be re-evaluated.
+
+      auto tmpValue = frame.EvaluateExpression(varObj.GetNameReal().c_str());
+      if (tmpValue.IsValid() && tmpValue.GetError().Success()) {
+        m_bValueChanged = true;
+        rValue = std::move(tmpValue);
+      }
+    }
+  }
 
   if (m_bValueChanged) {
     varObj.UpdateValue();
@@ -669,7 +696,7 @@ bool CMICmdCmdVarAssign::Execute() {
 
   CMIUtilString strExpression(rExpression.Trim());
   strExpression = strExpression.Trim('"');
-  lldb::SBValue &rValue(const_cast<lldb::SBValue &>(varObj.GetValue()));
+  lldb::SBValue &rValue(varObj.GetValue());
   m_bOk = rValue.SetValueFromCString(strExpression.c_str());
   if (m_bOk)
     varObj.UpdateValue();
@@ -976,7 +1003,8 @@ bool CMICmdCmdVarListChildren::Execute() {
 
     // Varobj gets added to CMICmnLLDBDebugSessionInfoVarObj static container of
     // varObjs
-    CMICmnLLDBDebugSessionInfoVarObj var(strExp, name, member, rVarObjName);
+    CMICmnLLDBDebugSessionInfoVarObj var(strExp, name, member, rVarObjName,
+                                         varObj.GetValObjKind());
 
     // MI print
     // "child={name=\"%s\",exp=\"%s\",numchild=\"%d\",value=\"%s\",type=\"%s\",thread-id=\"%u\",has_more=\"%u\"}"
