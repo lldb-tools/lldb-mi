@@ -35,7 +35,8 @@ CMICmnLLDBDebugSessionInfoVarObj::varFormat_e
 // Throws:  None.
 //--
 CMICmnLLDBDebugSessionInfoVarObj::CMICmnLLDBDebugSessionInfoVarObj()
-    : m_eVarFormat(eVarFormat_Natural), m_eVarType(eVarType_Internal) {
+    : m_eVarFormat(eVarFormat_Natural), m_eVarType(eVarType_Internal),
+      m_eValObjKind(valObjKind_ec::eValObjKind_Other) {
   // Do not call UpdateValue() in here as not necessary
 }
 
@@ -52,9 +53,10 @@ CMICmnLLDBDebugSessionInfoVarObj::CMICmnLLDBDebugSessionInfoVarObj()
 //--
 CMICmnLLDBDebugSessionInfoVarObj::CMICmnLLDBDebugSessionInfoVarObj(
     const CMIUtilString &vrStrNameReal, const CMIUtilString &vrStrName,
-    const lldb::SBValue &vrValue)
+    const lldb::SBValue &vrValue, const valObjKind_ec eValObjKind)
     : m_eVarFormat(eVarFormat_Natural), m_eVarType(eVarType_Internal),
-      m_strName(vrStrName), m_SBValue(vrValue), m_strNameReal(vrStrNameReal) {
+      m_eValObjKind(eValObjKind), m_strName(vrStrName), m_SBValue(vrValue),
+      m_strNameReal(vrStrNameReal) {
   UpdateValue();
 }
 
@@ -73,9 +75,11 @@ CMICmnLLDBDebugSessionInfoVarObj::CMICmnLLDBDebugSessionInfoVarObj(
 //--
 CMICmnLLDBDebugSessionInfoVarObj::CMICmnLLDBDebugSessionInfoVarObj(
     const CMIUtilString &vrStrNameReal, const CMIUtilString &vrStrName,
-    const lldb::SBValue &vrValue, const CMIUtilString &vrStrVarObjParentName)
+    const lldb::SBValue &vrValue, const CMIUtilString &vrStrVarObjParentName,
+    const valObjKind_ec eValObjKind)
     : m_eVarFormat(eVarFormat_Natural), m_eVarType(eVarType_Internal),
-      m_strName(vrStrName), m_SBValue(vrValue), m_strNameReal(vrStrNameReal),
+      m_eValObjKind(eValObjKind), m_strName(vrStrName), m_SBValue(vrValue),
+      m_strNameReal(vrStrNameReal),
       m_strVarObjParentName(vrStrVarObjParentName) {
   UpdateValue();
 }
@@ -149,6 +153,7 @@ void CMICmnLLDBDebugSessionInfoVarObj::CopyOther(
     const CMICmnLLDBDebugSessionInfoVarObj &vrOther) {
   m_eVarFormat = vrOther.m_eVarFormat;
   m_eVarType = vrOther.m_eVarType;
+  m_eValObjKind = vrOther.m_eValObjKind;
   m_strName = vrOther.m_strName;
   m_SBValue = vrOther.m_SBValue;
   m_strNameReal = vrOther.m_strNameReal;
@@ -167,6 +172,7 @@ void CMICmnLLDBDebugSessionInfoVarObj::MoveOther(
     CMICmnLLDBDebugSessionInfoVarObj &&vrwOther) {
   m_eVarFormat = vrwOther.m_eVarFormat;
   m_eVarType = vrwOther.m_eVarType;
+  m_eValObjKind = vrwOther.m_eValObjKind;
   m_strName = std::move(vrwOther.m_strName);
   m_SBValue = std::move(vrwOther.m_SBValue);
   m_strNameReal = std::move(vrwOther.m_strNameReal);
@@ -175,6 +181,7 @@ void CMICmnLLDBDebugSessionInfoVarObj::MoveOther(
 
   vrwOther.m_eVarFormat = eVarFormat_Natural;
   vrwOther.m_eVarType = eVarType_Internal;
+  vrwOther.m_eValObjKind = valObjKind_ec::eValObjKind_Other;
   vrwOther.m_strName.clear();
   vrwOther.m_SBValue.Clear();
   vrwOther.m_strNameReal.clear();
@@ -557,4 +564,15 @@ CMICmnLLDBDebugSessionInfoVarObj::GetType() const {
 const CMIUtilString &
 CMICmnLLDBDebugSessionInfoVarObj::GetVarParentName() const {
   return m_strVarObjParentName;
+}
+
+//++
+// Details: Retrieve the kind of the value object.
+// Type:    Method.
+// Args:    None.
+// Returns: ValObjKind_ec - Enumeration value.
+// Throws:  None.
+//--
+ValObjKind_ec CMICmnLLDBDebugSessionInfoVarObj::GetValObjKind() const {
+  return m_eValObjKind;
 }
