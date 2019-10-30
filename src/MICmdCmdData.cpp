@@ -365,8 +365,34 @@ bool CMICmdCmdDataDisassemble::Execute() {
       strComment = CMIUtilString::Format("; %s", pStrComment);
     lldb::SBAddress address = instrt.GetAddress();
     lldb::addr_t addr = address.GetLoadAddress(sbTarget);
-    const char *pFnName = address.GetFunction().GetName();
+
+    // This sequence is similar to SBFrame::GetFunctionName() - first try
+    // inlined block, then function, then symbol.
+    const char *pFnName = nullptr;
+    auto sc = address.GetSymbolContext(lldb::eSymbolContextBlock |
+                                       lldb::eSymbolContextFunction |
+                                       lldb::eSymbolContextSymbol);
+    if (sc.IsValid()) {
+      auto block = sc.GetBlock();
+      if (block.IsValid() && block.GetContainingInlinedBlock().IsValid()) {
+        auto inlinedBlock = block.GetContainingInlinedBlock();
+        pFnName = inlinedBlock.GetInlinedName();
+      } else {
+        auto function = sc.GetFunction();
+        if (function.IsValid()) {
+          pFnName = function.GetName();
+        } else {
+          auto symbol = sc.GetSymbol();
+          if (symbol.IsValid()) {
+            pFnName = symbol.GetName();
+          }
+        }
+      }
+    }
+
+    // Fallback name.
     pFnName = (pFnName != nullptr) ? pFnName : pUnknown;
+
     lldb::addr_t addrOffSet = address.GetOffset() - start_offset;
     const char *pStrOperands = instrt.GetOperands(sbTarget);
     pStrOperands = (pStrOperands != nullptr) ? pStrOperands : pUnknown;
