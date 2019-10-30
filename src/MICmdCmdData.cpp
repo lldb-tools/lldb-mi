@@ -347,12 +347,6 @@ bool CMICmdCmdDataDisassemble::Execute() {
   lldb::SBInstructionList instructions = sbTarget.ReadInstructions(
       lldb::SBAddress(lldbStartAddr, sbTarget), nAddrEnd - nAddrStart);
   const MIuint nInstructions = instructions.GetSize();
-  // Calculate the offset of first instruction so that we can generate offset
-  // starting at 0
-  lldb::addr_t start_offset = 0;
-  if (nInstructions > 0)
-    start_offset =
-        instructions.GetInstructionAtIndex(0).GetAddress().GetOffset();
 
   for (size_t i = 0; i < nInstructions; i++) {
     const char *pUnknown = "??";
@@ -368,6 +362,10 @@ bool CMICmdCmdDataDisassemble::Execute() {
 
     // This sequence is similar to SBFrame::GetFunctionName() - first try
     // inlined block, then function, then symbol.
+    // Offset is an offset of instruction inside the function, first
+    // instruction in sequence might not have offset 0, if start address is
+    // not the first instruction of the function.
+    lldb::addr_t startOffset = 0;
     const char *pFnName = nullptr;
     auto sc = address.GetSymbolContext(lldb::eSymbolContextBlock |
                                        lldb::eSymbolContextFunction |
@@ -377,14 +375,18 @@ bool CMICmdCmdDataDisassemble::Execute() {
       if (block.IsValid() && block.GetContainingInlinedBlock().IsValid()) {
         auto inlinedBlock = block.GetContainingInlinedBlock();
         pFnName = inlinedBlock.GetInlinedName();
+        uint32_t index = inlinedBlock.GetRangeIndexForBlockAddress(address);
+        startOffset = inlinedBlock.GetRangeStartAddress(index).GetOffset();
       } else {
         auto function = sc.GetFunction();
         if (function.IsValid()) {
           pFnName = function.GetName();
+          startOffset = function.GetStartAddress().GetOffset();
         } else {
           auto symbol = sc.GetSymbol();
           if (symbol.IsValid()) {
             pFnName = symbol.GetName();
+            startOffset = symbol.GetStartAddress().GetOffset();
           }
         }
       }
@@ -393,7 +395,8 @@ bool CMICmdCmdDataDisassemble::Execute() {
     // Fallback name.
     pFnName = (pFnName != nullptr) ? pFnName : pUnknown;
 
-    lldb::addr_t addrOffSet = address.GetOffset() - start_offset;
+    lldb::addr_t addrOffset = address.GetOffset() - startOffset;
+
     const char *pStrOperands = instrt.GetOperands(sbTarget);
     pStrOperands = (pStrOperands != nullptr) ? pStrOperands : pUnknown;
     const size_t instrtSize = instrt.GetByteSize();
@@ -408,7 +411,7 @@ bool CMICmdCmdDataDisassemble::Execute() {
     const CMICmnMIValueResult miValueResult2("func-name", miValueConst2);
     miValueTuple.Add(miValueResult2);
     const CMICmnMIValueConst miValueConst3(
-        CMIUtilString::Format("%lld", addrOffSet));
+        CMIUtilString::Format("%lld", addrOffset));
     const CMICmnMIValueResult miValueResult3("offset", miValueConst3);
     miValueTuple.Add(miValueResult3);
     const CMICmnMIValueConst miValueConst4(
