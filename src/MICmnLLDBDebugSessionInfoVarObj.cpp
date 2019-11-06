@@ -115,8 +115,8 @@ CMICmnLLDBDebugSessionInfoVarObj::CMICmnLLDBDebugSessionInfoVarObj(
 // Return:  CMICmnLLDBDebugSessionInfoVarObj & - Updated *this object.
 // Throws:  None.
 //--
-CMICmnLLDBDebugSessionInfoVarObj &CMICmnLLDBDebugSessionInfoVarObj::
-operator=(const CMICmnLLDBDebugSessionInfoVarObj &vrOther) {
+CMICmnLLDBDebugSessionInfoVarObj &CMICmnLLDBDebugSessionInfoVarObj::operator=(
+    const CMICmnLLDBDebugSessionInfoVarObj &vrOther) {
   // Check for self-assignment
   if (this == &vrOther)
     return *this;
@@ -132,8 +132,8 @@ operator=(const CMICmnLLDBDebugSessionInfoVarObj &vrOther) {
 // Return:  CMICmnLLDBDebugSessionInfoVarObj & - Updated *this object.
 // Throws:  None.
 //--
-CMICmnLLDBDebugSessionInfoVarObj &CMICmnLLDBDebugSessionInfoVarObj::
-operator=(CMICmnLLDBDebugSessionInfoVarObj &&vrwOther) {
+CMICmnLLDBDebugSessionInfoVarObj &CMICmnLLDBDebugSessionInfoVarObj::operator=(
+    CMICmnLLDBDebugSessionInfoVarObj &&vrwOther) {
   // Check for self-assignment
   if (this == &vrwOther)
     return *this;
