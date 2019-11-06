@@ -68,8 +68,8 @@ CMIUtilVariant::CDataObjectBase::~CDataObjectBase() { Destroy(); }
 // Return:  None.
 // Throws:  None.
 //--
-CMIUtilVariant::CDataObjectBase &CMIUtilVariant::CDataObjectBase::
-operator=(const CDataObjectBase &vrOther) {
+CMIUtilVariant::CDataObjectBase &
+CMIUtilVariant::CDataObjectBase::operator=(const CDataObjectBase &vrOther) {
   Copy(vrOther);
   return *this;
 }
@@ -81,8 +81,8 @@ operator=(const CDataObjectBase &vrOther) {
 // Return:  None.
 // Throws:  None.
 //--
-CMIUtilVariant::CDataObjectBase &CMIUtilVariant::CDataObjectBase::
-operator=(CDataObjectBase &&vrwOther) {
+CMIUtilVariant::CDataObjectBase &
+CMIUtilVariant::CDataObjectBase::operator=(CDataObjectBase &&vrwOther) {
   Copy(vrwOther);
   vrwOther.Destroy();
   return *this;
@@ -192,8 +192,8 @@ CMIUtilVariant::CDataObject<T>::CDataObject(CDataObject &&vrwOther) {
 // Throws:  None.
 //--
 template <typename T>
-CMIUtilVariant::CDataObject<T> &CMIUtilVariant::CDataObject<T>::
-operator=(const CDataObject &vrOther) {
+CMIUtilVariant::CDataObject<T> &
+CMIUtilVariant::CDataObject<T>::operator=(const CDataObject &vrOther) {
   if (this == &vrOther)
     return *this;
   Copy(vrOther);
@@ -209,8 +209,8 @@ operator=(const CDataObject &vrOther) {
 // Throws:  None.
 //--
 template <typename T>
-CMIUtilVariant::CDataObject<T> &CMIUtilVariant::CDataObject<T>::
-operator=(CDataObject &&vrwOther) {
+CMIUtilVariant::CDataObject<T> &
+CMIUtilVariant::CDataObject<T>::operator=(CDataObject &&vrwOther) {
   if (this == &vrwOther)
     return *this;
   Copy(vrwOther);
