@@ -8,12 +8,16 @@ cd "$DIR"
 cd ..
 
 # Clang format check
-bash ci/clang-format.sh
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  echo "Not running clang-format on macOS"  # Clang format check already done on Arch
+else
+  bash ci/clang-format.sh
+fi
 
 # Creating build directory
 mkdir build
 cd build
 
 # Build lldb-mi
-cmake  -GNinja ..
+cmake $1 -GNinja ..
 ninja

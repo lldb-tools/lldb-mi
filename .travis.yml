@@ -1,5 +1,11 @@
 sudo: required
 
+os:
+  - linux
+  - osx
+
+osx_image: xcode11.2
+
 services:
 - docker
 
@@ -14,4 +20,5 @@ archlinux:
   - "./ci/travis.sh"
 
 script:
-- "curl -s https://raw.githubusercontent.com/mikkeloscar/arch-travis/master/arch-travis.sh | bash"
+  - "./ci/run-arch.sh"
+  - bash -x "./ci/run-macOS.sh"
