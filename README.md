@@ -4,7 +4,7 @@ LLDB's machine interface driver.
 
 # Build
 
-lldb-mi uses CMake to build. The only dependencies needed for lldb-mi are a C++11 compiler and LLDB itself (including its dependencies: Clang and LLVM). These dependencies should be installed in a way that they can be found via CMake's [`find_package`](https://cmake.org/cmake/help/latest/command/find_package.html) functionality. You need both the LLDB/Clang/LLVM headers and their compiled libraries for the build to work, but not the respective source files. 
+lldb-mi uses CMake to build. The only dependencies needed for lldb-mi are a C++14 compiler and LLDB itself (including its dependencies: Clang and LLVM). These dependencies should be installed in a way that they can be found via CMake's [`find_package`](https://cmake.org/cmake/help/latest/command/find_package.html) functionality. You need both the LLDB/Clang/LLVM headers and their compiled libraries for the build to work, but not the respective source files. 
 
 # Building against system LLDB
 
