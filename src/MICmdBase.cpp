@@ -190,7 +190,8 @@ void CMICmdBase::SetError(const CMIUtilString &rErrMsg) {
   m_cmdData.strErrorDescription = rErrMsg;
   m_cmdData.bCmdExecutedSuccessfully = false;
 
-  const CMICmnMIValueResult valueResult("msg", CMICmnMIValueConst(rErrMsg));
+  const CMICmnMIValueResult valueResult(
+      "msg", CMICmnMIValueConst(rErrMsg.Escape(true)));
   const CMICmnMIResultRecord miResultRecord(
       m_cmdData.strMiCmdToken, CMICmnMIResultRecord::eResultClass_Error,
       valueResult);
