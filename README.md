@@ -8,7 +8,7 @@ lldb-mi uses CMake to build. The only dependencies needed for lldb-mi are a C++1
 
 # Building against system LLDB
 
-If your distribution or operating system already ships a correctly configured LLDB/Clang/LLVM installation, lldb-mi can be build by simple running:
+If your distribution or operating system already ships a correctly configured LLDB/Clang/LLVM installation, lldb-mi can be build by simply running:
 
 
 ```bash
