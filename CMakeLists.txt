@@ -20,7 +20,7 @@ if(LLVM_BUILD_MAIN_SRC_DIR)
   include_directories(${LLVM_BUILD_MAIN_SRC_DIR}/tools/clang/include)
   include_directories(${LLVM_BUILD_BINARY_DIR}/tools/clang/include)
 endif()
-link_directories(${LLVM_LIBRARY_DIRS})
+
 add_definitions(${LLVM_DEFINITIONS})
 
 add_subdirectory(src)
