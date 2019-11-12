@@ -74,4 +74,25 @@ add_executable(lldb-mi
   MIUtilVariant.cpp
 )
 
-target_link_libraries(lldb-mi lldb LLVMSupport pthread)
+set(llvm_deps "")
+
+find_library(liblldb lldb HINTS ${LLVM_LIBRARY_DIRS})
+find_library(libllvm LLVM HINTS ${LLVM_LIBRARY_DIRS})
+
+if (NOT libllvm)
+  message(STATUS "Can't find LLVM shared library, falling back to static linking LLVMSupport")
+  find_library(libllvm LLVMSupport HINTS ${LLVM_LIBRARY_DIRS})
+  find_package(Curses REQUIRED)
+  
+  get_property(LLVMSupportDeps GLOBAL PROPERTY LLVMBUILD_LIB_DEPS_LLVMSupport)
+  foreach(dependency ${LLVMSupportDeps})
+    find_library(lib ${dependency} HINTS ${LLVM_LIBRARY_DIRS})
+    list(APPEND llvm_deps "${lib}")
+  endforeach()
+  
+  list(APPEND llvm_deps "${CURSES_LIBRARIES}")
+endif()
+  
+list(APPEND llvm_deps "${LLVM_PTHREAD_LIB}")
+
+target_link_libraries(lldb-mi ${liblldb} ${libllvm} ${llvm_deps})
