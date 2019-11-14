@@ -377,5 +377,8 @@ public:
   // Attributes:
 private:
   const CMIUtilString m_constStrArgLocation;
-  CMICmnMIResultRecord m_resultRecord;
+  CMICmnMIValueResult m_resultStartAddress;
+  CMICmnMIValueResult m_resultEndAddress;
+  CMICmnMIValueResult m_resultFile;
+  CMICmnMIValueResult m_resultLine;
 };
