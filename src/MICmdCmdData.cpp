@@ -1535,9 +1535,7 @@ CMICmdBase *CMICmdCmdDataWriteMemory::CreateSelf() {
 // Throws:  None.
 //--
 CMICmdCmdDataInfoLine::CMICmdCmdDataInfoLine()
-    : m_constStrArgLocation("location"),
-      m_resultRecord(m_cmdData.strMiCmdToken,
-                     CMICmnMIResultRecord::eResultClass_Done) {
+    : m_constStrArgLocation("location") {
   // Command factory matches this name with that received from the stdin stream
   m_strMiCmd = "data-info-line";
 
@@ -1645,21 +1643,21 @@ bool CMICmdCmdDataInfoLine::Execute() {
     return MIstatus::failure;
   }
   // Start address.
-  m_resultRecord.Add(CMICmnMIValueResult(
+  m_resultStartAddress = CMICmnMIValueResult(
       "start", CMICmnMIValueConst(
-                   IntToHexAddrStr(line.GetStartAddress().GetFileAddress()))));
+                   IntToHexAddrStr(line.GetStartAddress().GetFileAddress())));
   // End address.
-  m_resultRecord.Add(
+  m_resultEndAddress =
       CMICmnMIValueResult("end", CMICmnMIValueConst(IntToHexAddrStr(
-                                     line.GetEndAddress().GetFileAddress()))));
+                                     line.GetEndAddress().GetFileAddress())));
   // File.
   std::unique_ptr<char[]> upPath(new char[PATH_MAX]);
   line.GetFileSpec().GetPath(upPath.get(), PATH_MAX);
-  m_resultRecord.Add(CMICmnMIValueResult(
-      "file", CMICmnMIValueConst(CMIUtilString(upPath.get()))));
+  m_resultFile = CMICmnMIValueResult(
+      "file", CMICmnMIValueConst(CMIUtilString(upPath.get())));
   // Line.
-  m_resultRecord.Add(CMICmnMIValueResult(
-      "line", CMICmnMIValueConst(std::to_string(line.GetLine()))));
+  m_resultLine = CMICmnMIValueResult(
+      "line", CMICmnMIValueConst(std::to_string(line.GetLine())));
   return MIstatus::success;
 }
 
@@ -1674,7 +1672,13 @@ bool CMICmdCmdDataInfoLine::Execute() {
 // Throws:  None.
 //--
 bool CMICmdCmdDataInfoLine::Acknowledge() {
-  m_miResultRecord = m_resultRecord;
+  CMICmnMIResultRecord miRecordResult(m_cmdData.strMiCmdToken,
+                                      CMICmnMIResultRecord::eResultClass_Done);
+  miRecordResult.Add(m_resultStartAddress);
+  miRecordResult.Add(m_resultEndAddress);
+  miRecordResult.Add(m_resultFile);
+  miRecordResult.Add(m_resultLine);
+  m_miResultRecord = miRecordResult;
   return MIstatus::success;
 }
 
