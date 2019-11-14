@@ -21,4 +21,4 @@ archlinux:
 
 script:
   - "./ci/run-arch.sh"
-  - bash -x "./ci/run-macOS.sh"
+  - travis_wait 20 bash -x "./ci/run-macOS.sh"
