@@ -76,23 +76,24 @@ add_executable(lldb-mi
 
 set(llvm_deps "")
 
-find_library(liblldb lldb HINTS ${LLVM_LIBRARY_DIRS})
-find_library(libllvm LLVM HINTS ${LLVM_LIBRARY_DIRS})
+find_library(lib_lldb NAMES lldb liblldb HINTS ${LLVM_LIBRARY_DIRS})
+find_library(lib_llvm LLVM HINTS ${LLVM_LIBRARY_DIRS})
 
-if (NOT libllvm)
+if (NOT lib_llvm)
   message(STATUS "Can't find LLVM shared library, falling back to static linking LLVMSupport")
-  find_library(libllvm LLVMSupport HINTS ${LLVM_LIBRARY_DIRS})
-  find_package(Curses REQUIRED)
-  
+  find_library(lib_llvm LLVMSupport HINTS ${LLVM_LIBRARY_DIRS})
+
   get_property(LLVMSupportDeps GLOBAL PROPERTY LLVMBUILD_LIB_DEPS_LLVMSupport)
   foreach(dependency ${LLVMSupportDeps})
     find_library(lib ${dependency} HINTS ${LLVM_LIBRARY_DIRS})
     list(APPEND llvm_deps "${lib}")
   endforeach()
-  
-  list(APPEND llvm_deps "${CURSES_LIBRARIES}")
+  if(NOT MSVC)
+    find_package(Curses REQUIRED)
+    list(APPEND llvm_deps "${CURSES_LIBRARIES}")
+  endif()
 endif()
-  
+
 list(APPEND llvm_deps "${LLVM_PTHREAD_LIB}")
 
-target_link_libraries(lldb-mi ${liblldb} ${libllvm} ${llvm_deps})
+target_link_libraries(lldb-mi ${lib_lldb} ${lib_llvm} ${llvm_deps})
