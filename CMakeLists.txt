@@ -17,8 +17,8 @@ include(HandleLLVMOptions)
 
 include_directories(${LLVM_INCLUDE_DIRS})
 if(LLVM_BUILD_MAIN_SRC_DIR)
-  include_directories(${LLVM_BUILD_MAIN_SRC_DIR}/tools/clang/include)
-  include_directories(${LLVM_BUILD_BINARY_DIR}/tools/clang/include)
+  include_directories(${LLVM_BUILD_MAIN_SRC_DIR}/../lldb/include)
+  include_directories(${LLVM_BUILD_BINARY_DIR}/tools/lldb/include)
 endif()
 
 add_definitions(${LLVM_DEFINITIONS})
