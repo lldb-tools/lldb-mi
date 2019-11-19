@@ -32,5 +32,10 @@ if (NOT LLVM_ENABLE_EH)
   endif()
 endif()
 
+if(MSVC)
+  #Disable warning "multiple copy constructors specified".
+  add_compile_options("/wd4521")
+endif()
+
 add_subdirectory(src)
 
