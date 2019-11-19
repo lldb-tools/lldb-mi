@@ -23,5 +23,14 @@ endif()
 
 add_definitions(${LLVM_DEFINITIONS})
 
+if (NOT LLVM_ENABLE_EH)
+  if(LLVM_COMPILER_IS_GCC_COMPATIBLE)
+    add_compile_options("-fno-exceptions")
+  elseif(MSVC)
+    add_compile_options("/EHs-c-")
+    add_definitions("-D_HAS_EXCEPTIONS=0")
+  endif()
+endif()
+
 add_subdirectory(src)
 
