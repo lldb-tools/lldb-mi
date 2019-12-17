@@ -892,6 +892,7 @@ bool CMICmnLLDBDebuggerHandleEvents::HandleProcessEventBroadcastBitStateChanged(
     break;
   case lldb::eStateStepping:
     pEventType = "eStateStepping";
+    bOk = HandleProcessEventStateRunning();
     break;
   case lldb::eStateDetached:
     pEventType = "eStateDetached";
