@@ -332,7 +332,8 @@ bool CMICmnLLDBUtilSBValue::IsPointeeCharType() const {
 // Throws:  None.
 //--
 bool CMICmnLLDBUtilSBValue::IsIntegerType() const {
-  const lldb::BasicType eType = m_rValue.GetType().GetBasicType();
+  const lldb::BasicType eType =
+      m_rValue.GetType().GetCanonicalType().GetBasicType();
   return ((eType == lldb::eBasicTypeShort) ||
           (eType == lldb::eBasicTypeUnsignedShort) ||
           (eType == lldb::eBasicTypeInt) ||
