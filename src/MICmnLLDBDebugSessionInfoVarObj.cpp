@@ -265,29 +265,31 @@ CMIUtilString CMICmnLLDBDebugSessionInfoVarObj::GetValueStringFormatted(
     const lldb::SBValue &vrValue,
     const CMICmnLLDBDebugSessionInfoVarObj::varFormat_e veVarFormat) {
   const CMICmnLLDBUtilSBValue utilValue(vrValue, true);
-  if (utilValue.IsIntegerType()) {
+  const CMIUtilString defaultValue = utilValue.GetValue().AddSlashes();
+
+  if (utilValue.IsIntegerType() || utilValue.IsPointerType()) {
     MIuint64 nValue = 0;
     if (CMICmnLLDBProxySBValue::GetValueAsUnsigned(vrValue, nValue)) {
       lldb::SBValue &rValue = const_cast<lldb::SBValue &>(vrValue);
-      return GetStringFormatted(nValue, rValue.GetValue(), veVarFormat);
+      return GetStringFormatted(nValue, defaultValue, veVarFormat);
     }
   }
 
-  return utilValue.GetValue().AddSlashes();
+  return defaultValue;
 }
 
 //++
 // Details: Return number formatted string according to the given value type.
 // Type:    Static method.
 // Args:    vnValue             - (R) The number value to get formatted.
-//          vpStrValueNatural   - (R) The natural representation of the number
+//          vrStrValueNatural   - (R) The natural representation of the number
 //          value.
 //          veVarFormat         - (R) Var format enumeration.
 // Returns: CMIUtilString       - Numerical formatted string.
 // Throws:  None.
 //--
 CMIUtilString CMICmnLLDBDebugSessionInfoVarObj::GetStringFormatted(
-    const MIuint64 vnValue, const char *vpStrValueNatural,
+    const MIuint64 vnValue, const CMIUtilString &vrStrValueNatural,
     const CMICmnLLDBDebugSessionInfoVarObj::varFormat_e veVarFormat) {
   CMIUtilString strFormattedValue;
   CMICmnLLDBDebugSessionInfoVarObj::varFormat_e veFormat = veVarFormat;
@@ -311,7 +313,7 @@ CMIUtilString CMICmnLLDBDebugSessionInfoVarObj::GetStringFormatted(
     break;
   case eVarFormat_Natural:
   default: {
-    strFormattedValue = (vpStrValueNatural != nullptr) ? vpStrValueNatural : "";
+    strFormattedValue = vrStrValueNatural;
   }
   }
 

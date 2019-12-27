@@ -121,9 +121,10 @@ private:
 
   // Statics:
 private:
-  static CMIUtilString GetStringFormatted(const MIuint64 vnValue,
-                                          const char *vpStrValueNatural,
-                                          varFormat_e veVarFormat);
+  static CMIUtilString
+  GetStringFormatted(const MIuint64 vnValue,
+                     const CMIUtilString &vrStrValueNatural,
+                     varFormat_e veVarFormat);
 
   // Methods:
 private:
