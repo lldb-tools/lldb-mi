@@ -69,10 +69,12 @@ bool CMICmdCmdSupportListFeatures::Acknowledge() {
   // Declare supported features here
   const CMICmnMIValueConst miValueConst1("data-read-memory-bytes");
   const CMICmnMIValueConst miValueConst2("exec-run-start-option");
+  const CMICmnMIValueConst miValueConst3("pending-breakpoints");
   // Some features may depend on host and/or target, decide what to add below
   CMICmnMIValueList miValueList(true);
   miValueList.Add(miValueConst1);
   miValueList.Add(miValueConst2);
+  miValueList.Add(miValueConst3);
   const CMICmnMIValueResult miValueResult("features", miValueList);
   const CMICmnMIResultRecord miRecordResult(
       m_cmdData.strMiCmdToken, CMICmnMIResultRecord::eResultClass_Done,
