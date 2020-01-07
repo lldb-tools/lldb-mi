@@ -120,6 +120,12 @@ bool CMICmdCmdExecRun::Execute() {
                               lldb::eLaunchFlagStopAtEntry);
   }
 
+  if (rSessionInfo.GetCreateTty()) {
+    launchInfo.SetLaunchFlags(launchInfo.GetLaunchFlags() |
+                              lldb::eLaunchFlagLaunchInTTY |
+                              lldb::eLaunchFlagCloseTTYOnExit);
+  }
+
   lldb::SBProcess process = rSessionInfo.GetTarget().Launch(launchInfo, error);
   if (!process.IsValid()) {
     SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_INVALID_PROCESS),

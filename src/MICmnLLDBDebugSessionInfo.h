@@ -183,6 +183,9 @@ public:
   lldb::SBTarget GetTarget() const;
   lldb::SBProcess GetProcess() const;
 
+  void SetCreateTty(bool val);
+  bool GetCreateTty() const;
+
   // Attributes:
 public:
   // The following are available to all command instances
@@ -239,6 +242,8 @@ private:
   VecVarObj_t m_vecVarObj; // Vector of session variable objects
   MapBrkPtIdToBrkPtInfo_t m_mapBrkPtIdToBrkPtInfo;
   CMIUtilThreadMutex m_sessionMutex;
+
+  bool m_bCreateTty; // Created inferiors should launch with new TTYs
 };
 
 //++

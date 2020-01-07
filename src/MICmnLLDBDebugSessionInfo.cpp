@@ -42,7 +42,8 @@ CMICmnLLDBDebugSessionInfo::CMICmnLLDBDebugSessionInfo()
       m_constStrSharedDataSolibPath("Solib Path"),
       m_constStrPrintCharArrayAsString("Print CharArrayAsString"),
       m_constStrPrintExpandAggregates("Print ExpandAggregates"),
-      m_constStrPrintAggregateFieldNames("Print AggregateFieldNames") {}
+      m_constStrPrintAggregateFieldNames("Print AggregateFieldNames"),
+      m_bCreateTty(false) {}
 
 //++
 // Details: CMICmnLLDBDebugSessionInfo destructor.
@@ -861,3 +862,21 @@ lldb::SBTarget CMICmnLLDBDebugSessionInfo::GetTarget() const {
 lldb::SBProcess CMICmnLLDBDebugSessionInfo::GetProcess() const {
   return GetTarget().GetProcess();
 }
+
+//++
+// Details: Set flag that new inferiors should run in new ttys.
+// Type:    Method.
+// Args:    val - new value of create tty
+// Return:  None.
+// Throws:  None.
+//--
+void CMICmnLLDBDebugSessionInfo::SetCreateTty(bool val) { m_bCreateTty = val; }
+
+//++
+// Details: Get flag that new inferiors should run in new ttys.
+// Type:    Method.
+// Args:    None.
+// Return:  bool - value of CreateTty flag.
+// Throws:  None.
+//--
+bool CMICmnLLDBDebugSessionInfo::GetCreateTty() const { return m_bCreateTty; }

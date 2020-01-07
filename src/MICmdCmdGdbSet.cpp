@@ -28,7 +28,8 @@ const CMICmdCmdGdbSet::MapGdbOptionNameToFnGdbOptionPtr_t
         {"solib-search-path", &CMICmdCmdGdbSet::OptionFnSolibSearchPath},
         {"disassembly-flavor", &CMICmdCmdGdbSet::OptionFnDisassemblyFlavor},
         {"fallback", &CMICmdCmdGdbSet::OptionFnFallback},
-        {"breakpoint", &CMICmdCmdGdbSet::OptionFnBreakpoint}};
+        {"breakpoint", &CMICmdCmdGdbSet::OptionFnBreakpoint},
+        {"new-console", &CMICmdCmdGdbSet::OptionFnNewConsole}};
 
 //++
 // Details: CMICmdCmdGdbSet constructor.
@@ -39,7 +40,7 @@ const CMICmdCmdGdbSet::MapGdbOptionNameToFnGdbOptionPtr_t
 //--
 CMICmdCmdGdbSet::CMICmdCmdGdbSet()
     : m_constStrArgNamedGdbOption("option"), m_bGdbOptionRecognised(true),
-      m_bGdbOptionFnSuccessful(false), m_bGbbOptionFnHasError(false),
+      m_bGdbOptionFnSuccessful(false), m_bGdbOptionFnHasError(false),
       m_strGdbOptionFnError(MIRSRC(IDS_WORD_ERR_MSG_NOT_IMPLEMENTED_BRKTS)) {
   // Command factory matches this name with that received from the stdin stream
   m_strMiCmd = "gdb-set";
@@ -121,7 +122,7 @@ bool CMICmdCmdGdbSet::Execute() {
   }
 
   m_bGdbOptionFnSuccessful = (this->*(pPrintRequestFn))(vecWords);
-  if (!m_bGdbOptionFnSuccessful && !m_bGbbOptionFnHasError)
+  if (!m_bGdbOptionFnSuccessful && !m_bGdbOptionFnHasError)
     return MIstatus::failure;
 
   return MIstatus::success;
@@ -221,11 +222,10 @@ bool CMICmdCmdGdbSet::GetOptionFn(const CMIUtilString &vrPrintFnName,
 bool CMICmdCmdGdbSet::OptionFnTargetAsync(
     const CMIUtilString::VecString_t &vrWords) {
   bool bAsyncMode = false;
-  bool bOk = true;
 
   if (vrWords.size() > 1)
     // Too many arguments.
-    bOk = false;
+    m_bGdbOptionFnHasError = true;
   else if (vrWords.size() == 0)
     // If no arguments, default is "on".
     bAsyncMode = true;
@@ -235,11 +235,11 @@ bool CMICmdCmdGdbSet::OptionFnTargetAsync(
     bAsyncMode = false;
   else
     // Unrecognized argument.
-    bOk = false;
+    m_bGdbOptionFnHasError = true;
 
-  if (!bOk) {
+  if (m_bGdbOptionFnHasError) {
     // Report error.
-    m_bGbbOptionFnHasError = true;
+    m_bGdbOptionFnHasError = true;
     m_strGdbOptionFnError = MIRSRC(IDS_CMD_ERR_GDBSET_OPT_TARGETASYNC);
     return MIstatus::failure;
   }
@@ -269,7 +269,7 @@ bool CMICmdCmdGdbSet::OptionFnPrint(const CMIUtilString::VecString_t &vrWords) {
   const bool bArgOff(bAllArgs && (CMIUtilString::Compare(vrWords[1], "off") ||
                                   CMIUtilString::Compare(vrWords[1], "0")));
   if (!bAllArgs || (!bArgOn && !bArgOff)) {
-    m_bGbbOptionFnHasError = true;
+    m_bGdbOptionFnHasError = true;
     m_strGdbOptionFnError = MIRSRC(IDS_CMD_ERR_GDBSET_OPT_PRINT_BAD_ARGS);
     return MIstatus::failure;
   }
@@ -283,7 +283,7 @@ bool CMICmdCmdGdbSet::OptionFnPrint(const CMIUtilString::VecString_t &vrWords) {
   else if (CMIUtilString::Compare(strOption, "aggregate-field-names"))
     strOptionKey = m_rLLDBDebugSessionInfo.m_constStrPrintAggregateFieldNames;
   else {
-    m_bGbbOptionFnHasError = true;
+    m_bGdbOptionFnHasError = true;
     m_strGdbOptionFnError = CMIUtilString::Format(
         MIRSRC(IDS_CMD_ERR_GDBSET_OPT_PRINT_UNKNOWN_OPTION), strOption.c_str());
     return MIstatus::failure;
@@ -292,7 +292,7 @@ bool CMICmdCmdGdbSet::OptionFnPrint(const CMIUtilString::VecString_t &vrWords) {
   const bool bOptionValue(bArgOn);
   if (!m_rLLDBDebugSessionInfo.SharedDataAdd<bool>(strOptionKey,
                                                    bOptionValue)) {
-    m_bGbbOptionFnHasError = false;
+    m_bGdbOptionFnHasError = false;
     SetError(CMIUtilString::Format(MIRSRC(IDS_DBGSESSION_ERR_SHARED_DATA_ADD),
                                    m_cmdData.strMiCmd.c_str(),
                                    strOptionKey.c_str()));
@@ -316,7 +316,7 @@ bool CMICmdCmdGdbSet::OptionFnSolibSearchPath(
     const CMIUtilString::VecString_t &vrWords) {
   // Check we have at least one argument
   if (vrWords.size() < 1) {
-    m_bGbbOptionFnHasError = true;
+    m_bGdbOptionFnHasError = true;
     m_strGdbOptionFnError = MIRSRC(IDS_CMD_ERR_GDBSET_OPT_SOLIBSEARCHPATH);
     return MIstatus::failure;
   }
@@ -327,7 +327,7 @@ bool CMICmdCmdGdbSet::OptionFnSolibSearchPath(
       m_rLLDBDebugSessionInfo.m_constStrSharedDataSolibPath);
   if (!m_rLLDBDebugSessionInfo.SharedDataAdd<CMIUtilString>(rStrKeySolibPath,
                                                             rStrValSolibPath)) {
-    m_bGbbOptionFnHasError = false;
+    m_bGdbOptionFnHasError = false;
     SetError(CMIUtilString::Format(MIRSRC(IDS_DBGSESSION_ERR_SHARED_DATA_ADD),
                                    m_cmdData.strMiCmd.c_str(),
                                    rStrKeySolibPath.c_str()));
@@ -351,7 +351,7 @@ bool CMICmdCmdGdbSet::OptionFnOutputRadix(
     const CMIUtilString::VecString_t &vrWords) {
   // Check we have at least one argument
   if (vrWords.size() < 1) {
-    m_bGbbOptionFnHasError = true;
+    m_bGdbOptionFnHasError = true;
     m_strGdbOptionFnError = MIRSRC(IDS_CMD_ERR_GDBSET_OPT_SOLIBSEARCHPATH);
     return MIstatus::failure;
   }
@@ -377,7 +377,7 @@ bool CMICmdCmdGdbSet::OptionFnOutputRadix(
     }
   }
   if (format == CMICmnLLDBDebugSessionInfoVarObj::eVarFormat_Invalid) {
-    m_bGbbOptionFnHasError = false;
+    m_bGdbOptionFnHasError = false;
     SetError(CMIUtilString::Format(MIRSRC(IDS_DBGSESSION_ERR_SHARED_DATA_ADD),
                                    m_cmdData.strMiCmd.c_str(), "Output Radix"));
     return MIstatus::failure;
@@ -401,7 +401,7 @@ bool CMICmdCmdGdbSet::OptionFnDisassemblyFlavor(
     const CMIUtilString::VecString_t &vrWords) {
   // Check we have at least one argument
   if (vrWords.size() < 1) {
-    m_bGbbOptionFnHasError = true;
+    m_bGdbOptionFnHasError = true;
     // m_strGdbOptionFnError = MIRSRC(IDS_CMD_ERR_GDBSET_OPT_SOLIBSEARCHPATH);
     return MIstatus::failure;
   }
@@ -451,7 +451,7 @@ bool CMICmdCmdGdbSet::OptionFnBreakpoint(
 
   if (!bOk) {
     // Report error.
-    m_bGbbOptionFnHasError = false;
+    m_bGdbOptionFnHasError = false;
     SetError(MIRSRC(IDS_CMD_ERR_GDBSET_OPT_BREAKPOINT));
     return MIstatus::failure;
   }
@@ -459,7 +459,7 @@ bool CMICmdCmdGdbSet::OptionFnBreakpoint(
   CMIUtilString sPendingVal = bPending ? "on" : "off";
   CMIUtilString sKey = "breakpoint.pending";
   if (!m_rLLDBDebugSessionInfo.SharedDataAdd(sKey, sPendingVal)) {
-    m_bGbbOptionFnHasError = false;
+    m_bGdbOptionFnHasError = false;
     SetError(CMIUtilString::Format(MIRSRC(IDS_DBGSESSION_ERR_SHARED_DATA_ADD),
                                    m_cmdData.strMiCmd.c_str(), sKey.c_str()));
     return MIstatus::failure;
@@ -487,5 +487,41 @@ bool CMICmdCmdGdbSet::OptionFnFallback(
   // option is not
   // found (implemented).
 
+  return MIstatus::success;
+}
+
+//++
+// Details: Carry out work to complete the GDB set option 'new-console'
+// Type:    Method.
+// Args:    None.
+// Return:  MIstatus::success - Functional succeeded.
+//          MIstatus::failure - Functional failed.
+// Throws:  None.
+//--
+bool CMICmdCmdGdbSet::OptionFnNewConsole(
+    const CMIUtilString::VecString_t &vrWords) {
+  bool bCreateNewConsole = false;
+  bool bOk = true;
+
+  // Too many arguments
+  if (vrWords.size() > 1) {
+    bOk = false;
+  } else if (vrWords.size() == 0) {
+    // If no arguments, default is "on"
+    bCreateNewConsole = true;
+  } else if (CMIUtilString::Compare(vrWords[0], "on")) {
+    bCreateNewConsole = true;
+  } else if (CMIUtilString::Compare(vrWords[0], "off")) {
+    bCreateNewConsole = false;
+  } else {
+    bOk = false;
+  }
+
+  if (!bOk) {
+    m_bGdbOptionFnHasError = true;
+    m_strGdbOptionFnError = MIRSRC(IDS_CMD_ERR_GDBSET_OPT_NEW_CONSOLE);
+    return MIstatus::failure;
+  }
+  m_rLLDBDebugSessionInfo.SetCreateTty(bCreateNewConsole);
   return MIstatus::success;
 }
