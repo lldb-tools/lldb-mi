@@ -81,6 +81,7 @@ private:
   bool OptionFnDisassemblyFlavor(const CMIUtilString::VecString_t &vrWords);
   bool OptionFnBreakpoint(const CMIUtilString::VecString_t &vrWords);
   bool OptionFnFallback(const CMIUtilString::VecString_t &vrWords);
+  bool OptionFnNewConsole(const CMIUtilString::VecString_t &vrWords);
 
   // Attributes:
 private:
@@ -93,7 +94,7 @@ private:
                                // found
   bool m_bGdbOptionFnSuccessful; // True = The print function completed its task
                                  // ok, false = function failed for some reason
-  bool m_bGbbOptionFnHasError;   // True = The option function has an error
+  bool m_bGdbOptionFnHasError;   // True = The option function has an error
                                  // condition (not the command!), false = option
                                  // function ok.
   CMIUtilString m_strGdbOptionName;

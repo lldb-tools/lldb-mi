@@ -459,7 +459,9 @@ const CMICmnResources::SRsrcTextData
         {IDS_CMD_ERR_ATTACH_FAILED,
          "Command '%s'. Attach to process failed: %s"},
         {IDS_CMD_ERR_ATTACH_BAD_ARGS,
-         "Command '%s'. Must specify either a PID or a Name"}};
+         "Command '%s'. Must specify either a PID or a Name"},
+        {IDS_CMD_ERR_GDBSET_OPT_NEW_CONSOLE,
+         "new-console' expects \"on\" or \"off\""}};
 
 //++
 // Details: CMICmnResources constructor.
