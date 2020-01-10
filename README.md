@@ -46,3 +46,19 @@ cd build
 cmake -DCMAKE_PREFIX_PATH=~/buildspace/llvm-inst/ -GNinja ..
 ninja
 ```
+
+# Building against custom LLDB.framework (Darwin Only)
+
+You can also build lldb-mi against a LLDB.framework that you compiled yourself. It is the same instructions as above but build the LLVM framework by passing `-DLLDB_BUILD_FRAMEWORK=1` to CMake instead of using the shared library. Then build LLDB-MI with `-DUSE_LLDB_FRAMEWORK=1`
+
+The snippits below change the cmake calls from the above script.
+```
+// Building llvm-project
+cmake -DLLVM_ENABLE_PROJECTS="clang;lldb;libcxx;libcxxabi" -DCMAKE_INSTALL_PREFIX=~/buildspace/llvm-inst/ -DLLDB_BUILD_FRAMEWORK=1 -GNinja ../llvm-project/llvm
+```
+
+```
+// Building lldb-mi
+cmake -DCMAKE_PREFIX_PATH=~/buildspace/llvm-inst/ -DUSE_LLDB_FRAMEWORK=1 -GNinja ..
+
+```
