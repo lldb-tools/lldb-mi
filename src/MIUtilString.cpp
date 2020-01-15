@@ -413,8 +413,7 @@ bool CMIUtilString::ExtractNumber(MIint64 &vwrNumber) const {
 bool CMIUtilString::ExtractNumberFromHexadecimal(MIint64 &vwrNumber) const {
   vwrNumber = 0;
 
-  const size_t nPos = find_first_not_of("xX01234567890ABCDEFabcedf");
-  if (nPos != std::string::npos)
+  if (!IsHexadecimalNumber())
     return false;
 
   errno = 0;
