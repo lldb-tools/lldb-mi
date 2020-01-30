@@ -837,12 +837,6 @@ bool CMICmnLLDBDebuggerHandleEvents::HandleProcessEventBroadcastBitStateChanged(
   if (lldb::SBProcess::GetRestartedFromEvent(vEvent))
     return MIstatus::success;
 
-  bool bOk = ChkForStateChanges();
-  bOk = bOk && GetProcessStdout();
-  bOk = bOk && GetProcessStderr();
-  if (!bOk)
-    return MIstatus::failure;
-
   // Something changed in the process; get the event and report the process's
   // current
   // status and location
@@ -850,6 +844,21 @@ bool CMICmnLLDBDebuggerHandleEvents::HandleProcessEventBroadcastBitStateChanged(
       lldb::SBProcess::GetStateFromEvent(vEvent);
   if (eEventState == lldb::eStateInvalid)
     return MIstatus::success;
+
+  bool bOk = true;
+
+  // When the process is running (or in stepping mode) any invocation of
+  // SBThread::IsValid() will return false. Moreover, the thread list
+  // cannot be modified when the state changes from `stopped` to `running`
+  // so it is not necessary to check changes of threads state in this case.
+  if (eEventState != lldb::eStateStepping &&
+      eEventState != lldb::eStateRunning) {
+    bool bOk = ChkForStateChanges();
+    bOk = bOk && GetProcessStdout();
+    bOk = bOk && GetProcessStderr();
+    if (!bOk)
+      return MIstatus::failure;
+  }
 
   lldb::SBProcess process = lldb::SBProcess::GetProcessFromEvent(vEvent);
   if (!process.IsValid()) {
