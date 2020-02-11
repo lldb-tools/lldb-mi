@@ -3,6 +3,7 @@ add_lldb_mi_test(TestMICmdArgValString
 
   SOURCES
   MICmdArgValString.cpp
+  MICmdArgValText.cpp
   MICmdArgValBase.cpp
   MIUtilString.cpp
   MICmdArgContext.cpp

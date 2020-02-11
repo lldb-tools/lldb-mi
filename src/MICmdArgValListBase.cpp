@@ -15,6 +15,7 @@
 #include "MICmdArgValOptionLong.h"
 #include "MICmdArgValOptionShort.h"
 #include "MICmdArgValString.h"
+#include "MICmdArgValText.h"
 #include "MICmdArgValThreadGrp.h"
 
 //++
@@ -140,7 +141,7 @@ CMICmdArgValListBase::CreationObj(const CMIUtilString &vrTxt,
     pOptionObj = new CMICmdArgValString(true, true, true);
     break;
   case eArgValType_StringAnything:
-    pOptionObj = new CMICmdArgValString(true);
+    pOptionObj = new CMICmdArgValText();
     break;
   case eArgValType_ThreadGrp:
     pOptionObj = new CMICmdArgValThreadGrp();
@@ -196,7 +197,7 @@ bool CMICmdArgValListBase::IsExpectedCorrectType(
     bValid = CMICmdArgValString(true, true, true).IsStringArg(vrTxt);
     break;
   case eArgValType_StringAnything:
-    bValid = CMICmdArgValString(true).IsStringArg(vrTxt);
+    bValid = true;
     break;
   case eArgValType_ThreadGrp:
     bValid = CMICmdArgValThreadGrp().IsArgThreadGrp(vrTxt);
