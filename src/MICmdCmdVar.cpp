@@ -28,6 +28,7 @@
 #include "MICmdArgValOptionShort.h"
 #include "MICmdArgValPrintValues.h"
 #include "MICmdArgValString.h"
+#include "MICmdArgValText.h"
 #include "MICmdArgValThreadGrp.h"
 #include "MICmdCmdVar.h"
 #include "MICmnLLDBDebugSessionInfo.h"
@@ -80,8 +81,7 @@ CMICmdCmdVarCreate::~CMICmdCmdVarCreate() {}
 bool CMICmdCmdVarCreate::ParseArgs() {
   m_setCmdArgs.Add(new CMICmdArgValString(m_constStrArgName, false, true));
   m_setCmdArgs.Add(new CMICmdArgValString(m_constStrArgFrameAddr, false, true));
-  m_setCmdArgs.Add(
-      new CMICmdArgValString(m_constStrArgExpression, true, true, true, true));
+  m_setCmdArgs.Add(new CMICmdArgValText(m_constStrArgExpression, true, true));
   return ParseValidateCmdOptions();
 }
 
@@ -101,7 +101,7 @@ bool CMICmdCmdVarCreate::Execute() {
   CMICMDBASE_GETOPTION(pArgFrame, OptionLong, m_constStrArgFrame);
   CMICMDBASE_GETOPTION(pArgName, String, m_constStrArgName);
   CMICMDBASE_GETOPTION(pArgFrameAddr, String, m_constStrArgFrameAddr);
-  CMICMDBASE_GETOPTION(pArgExpression, String, m_constStrArgExpression);
+  CMICMDBASE_GETOPTION(pArgExpression, Text, m_constStrArgExpression);
 
   // Retrieve the --thread option's thread ID (only 1)
   MIuint64 nThreadId = UINT64_MAX;
@@ -663,7 +663,7 @@ CMICmdCmdVarAssign::~CMICmdCmdVarAssign() {}
 //--
 bool CMICmdCmdVarAssign::ParseArgs() {
   m_setCmdArgs.Add(new CMICmdArgValString(m_constStrArgName, true, true));
-  m_setCmdArgs.Add(new CMICmdArgValString(m_constStrArgExpression, true, true));
+  m_setCmdArgs.Add(new CMICmdArgValText(m_constStrArgExpression, true, true));
   return ParseValidateCmdOptions();
 }
 
