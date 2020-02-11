@@ -9,7 +9,7 @@
 #pragma once
 
 // In-house headers:
-#include "MICmdArgValBase.h"
+#include "MICmdArgValText.h"
 
 // Declarations:
 class CMICmdArgContext;
@@ -24,11 +24,10 @@ class CMICmdArgContext;
 //          argument and so extract a value from it .
 //          Based on the Interpreter pattern.
 //--
-class CMICmdArgValString : public CMICmdArgValBaseTemplate<CMIUtilString> {
+class CMICmdArgValString : public CMICmdArgValText {
   // Methods:
 public:
   /* ctor */ CMICmdArgValString();
-  /* ctor */ CMICmdArgValString(const bool vbAnything);
   /* ctor */ CMICmdArgValString(const bool vbHandleQuotes,
                                 const bool vbAcceptNumbers,
                                 const bool vbHandleDirPaths);
@@ -57,12 +56,8 @@ public:
 private:
   bool ValidateSingleText(CMICmdArgContext &vrwArgContext);
   bool ValidateQuotedText(CMICmdArgContext &vrwArgContext);
-  bool ValidateQuotedTextEmbedded(CMICmdArgContext &vrwArgContext);
-  bool ValidateQuotedQuotedTextEmbedded(CMICmdArgContext &vrwArgContext);
   bool IsStringArgSingleText(const CMIUtilString &vrTxt) const;
   bool IsStringArgQuotedText(const CMIUtilString &vrTxt) const;
-  bool IsStringArgQuotedTextEmbedded(const CMIUtilString &vrTxt) const;
-  bool IsStringArgQuotedQuotedTextEmbedded(const CMIUtilString &vrTxt) const;
 
   // Attribute:
 private:
@@ -77,6 +72,4 @@ private:
                           // style string if present, false = directory file
                           // path not
                           // accepted
-  bool m_bHandleAnything; // True = Parse a string and accept anything if
-                          // present, false = validate for criteria matches
 };
