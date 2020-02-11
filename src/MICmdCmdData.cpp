@@ -34,6 +34,7 @@
 #include "MICmdArgValOptionLong.h"
 #include "MICmdArgValOptionShort.h"
 #include "MICmdArgValString.h"
+#include "MICmdArgValText.h"
 #include "MICmdArgValThreadGrp.h"
 #include "MICmdCmdData.h"
 #include "MICmnLLDBDebugSessionInfo.h"
@@ -89,8 +90,7 @@ CMICmdCmdDataEvaluateExpression::~CMICmdCmdDataEvaluateExpression() {}
 // Throws:  None.
 //--
 bool CMICmdCmdDataEvaluateExpression::ParseArgs() {
-  m_setCmdArgs.Add(
-      new CMICmdArgValString(m_constStrArgExpr, true, true, true, true));
+  m_setCmdArgs.Add(new CMICmdArgValText(m_constStrArgExpr, true, true));
   return ParseValidateCmdOptions();
 }
 
@@ -106,7 +106,7 @@ bool CMICmdCmdDataEvaluateExpression::ParseArgs() {
 // Throws:  None.
 //--
 bool CMICmdCmdDataEvaluateExpression::Execute() {
-  CMICMDBASE_GETOPTION(pArgExpr, String, m_constStrArgExpr);
+  CMICMDBASE_GETOPTION(pArgExpr, Text, m_constStrArgExpr);
 
   const CMIUtilString &rExpression(pArgExpr->GetValue());
   CMICmnLLDBDebugSessionInfo &rSessionInfo(
