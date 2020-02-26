@@ -3,6 +3,5 @@
 set -e
 
 echo "Checking clang-format"
-cd src
-clang-format *.h *.cpp -i
+find -name *.h -or -name *.cpp | xargs clang-format -i
 git diff --exit-code
