@@ -6,6 +6,7 @@ endif()
 
 project(lldb-mi)
 
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 find_package(LLVM REQUIRED CONFIG)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
@@ -54,3 +55,8 @@ IF("${isSystemDir}" STREQUAL "-1")
 ENDIF("${isSystemDir}" STREQUAL "-1")
 
 add_subdirectory(src)
+
+SET(INCLUDE_TESTS CACHE BOOL FALSE)
+if (INCLUDE_TESTS)
+  add_subdirectory(test)
+endif()
