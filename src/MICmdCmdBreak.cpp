@@ -222,10 +222,12 @@ bool CMICmdCmdBreakInsert::Execute() {
   // Determine if break defined as an address
   lldb::addr_t nAddress = 0;
   if (eBrkPtType == eBreakPoint_NotDefineYet) {
-    MIint64 nValue = 0;
-    if (m_brkName.ExtractNumber(nValue)) {
-      nAddress = static_cast<lldb::addr_t>(nValue);
-      eBrkPtType = eBreakPoint_ByAddress;
+    if (!m_brkName.empty() && m_brkName[0] == '*') {
+      MIint64 nValue = 0;
+      if (CMIUtilString(m_brkName.substr(1)).ExtractNumber(nValue)) {
+        nAddress = static_cast<lldb::addr_t>(nValue);
+        eBrkPtType = eBreakPoint_ByAddress;
+      }
     }
   }
 
