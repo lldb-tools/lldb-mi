@@ -274,6 +274,7 @@ bool CMICmdCmdBreakInsert::Execute() {
 
     m_brkPt.SetEnabled(m_bBrkPtEnabled);
     m_brkPt.SetIgnoreCount(m_nBrkPtIgnoreCount);
+    m_brkPt.SetOneShot(m_bBrkPtIsTemp);
     if (m_bBrkPtCondition)
       m_brkPt.SetCondition(m_brkPtCondition.c_str());
     if (m_bBrkPtThreadId)
