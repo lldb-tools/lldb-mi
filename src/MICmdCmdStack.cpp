@@ -519,19 +519,25 @@ bool CMICmdCmdStackListArguments::Execute() {
   CMICmnLLDBDebugSessionInfo &rSessionInfo(
       CMICmnLLDBDebugSessionInfo::Instance());
   lldb::SBProcess sbProcess = rSessionInfo.GetProcess();
+
+  // The check for the non-MI command "frame variable" validates that the
+  // process is paused and the frame exists. The same check is done here
+  lldb::StateType processState = sbProcess.GetState();
+  switch (processState) {
+  case lldb::eStateInvalid:
+  case lldb::eStateSuspended:
+  case lldb::eStateCrashed:
+  case lldb::eStateStopped:
+    break;
+  default:
+    m_bThreadInvalid = true;
+  }
   lldb::SBThread thread = (nThreadId != UINT64_MAX)
                               ? sbProcess.GetThreadByIndexID(nThreadId)
                               : sbProcess.GetSelectedThread();
-  m_bThreadInvalid = !thread.IsValid();
+  m_bThreadInvalid |= !thread.IsValid();
   if (m_bThreadInvalid)
     return MIstatus::success;
-
-  const lldb::StopReason eStopReason = thread.GetStopReason();
-  if ((eStopReason == lldb::eStopReasonNone) ||
-      (eStopReason == lldb::eStopReasonInvalid)) {
-    m_bThreadInvalid = true;
-    return MIstatus::success;
-  }
 
   const MIuint nFrames = thread.GetNumFrames();
   if (nFrameLow >= nFrames) {
@@ -857,19 +863,25 @@ bool CMICmdCmdStackListVariables::Execute() {
   CMICmnLLDBDebugSessionInfo &rSessionInfo(
       CMICmnLLDBDebugSessionInfo::Instance());
   lldb::SBProcess sbProcess = rSessionInfo.GetProcess();
+
+  // The check for the non-MI command "frame variable" validates that the
+  // process is paused and the frame exists. The same check is done here
+  lldb::StateType processState = sbProcess.GetState();
+  switch (processState) {
+  case lldb::eStateInvalid:
+  case lldb::eStateSuspended:
+  case lldb::eStateCrashed:
+  case lldb::eStateStopped:
+    break;
+  default:
+    m_bThreadInvalid = true;
+  }
   lldb::SBThread thread = (nThreadId != UINT64_MAX)
                               ? sbProcess.GetThreadByIndexID(nThreadId)
                               : sbProcess.GetSelectedThread();
-  m_bThreadInvalid = !thread.IsValid();
+  m_bThreadInvalid |= !thread.IsValid();
   if (m_bThreadInvalid)
     return MIstatus::success;
-
-  const lldb::StopReason eStopReason = thread.GetStopReason();
-  if ((eStopReason == lldb::eStopReasonNone) ||
-      (eStopReason == lldb::eStopReasonInvalid)) {
-    m_bThreadInvalid = true;
-    return MIstatus::success;
-  }
 
   lldb::SBFrame frame = (nFrame != UINT64_MAX) ? thread.GetFrameAtIndex(nFrame)
                                                : thread.GetSelectedFrame();
