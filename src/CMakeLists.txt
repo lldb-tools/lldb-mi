@@ -98,4 +98,5 @@ endif()
 list(APPEND llvm_deps "${LLVM_PTHREAD_LIB}")
 
 target_link_libraries(lldb-mi ${lib_lldb} ${lib_llvm} ${llvm_deps})
-install( TARGETS lldb-mi)
+install(TARGETS lldb-mi
+  RUNTIME DESTINATION bin)
