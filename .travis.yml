@@ -16,6 +16,7 @@ archlinux:
   - clang
   - ninja
   - cmake
+  - gtest
   script:
   - "./ci/travis.sh"
 

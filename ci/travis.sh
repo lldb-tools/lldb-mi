@@ -18,6 +18,17 @@ fi
 mkdir build
 cd build
 
+# Homebrew repository does not contain Google Test
+INCLUDE_TESTS=`[[ "$OSTYPE" == "darwin"* ]] && echo OFF || echo ON`
+
 # Build lldb-mi
-cmake $1 -GNinja ..
+cmake $1 -GNinja -DINCLUDE_TESTS=$INCLUDE_TESTS ..
 ninja
+
+# Run tests
+if [[ $INCLUDE_TESTS == OFF ]]; then
+  echo "Not running tests"
+else
+  cd test/unittests
+  ctest -V
+fi
