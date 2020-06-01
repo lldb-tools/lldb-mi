@@ -11,6 +11,7 @@ add_executable(lldb-mi
   MICmdArgValOptionShort.cpp
   MICmdArgValPrintValues.cpp
   MICmdArgValString.cpp
+  MICmdArgValText.cpp
   MICmdArgValThreadGrp.cpp
   MICmdBase.cpp
   MICmdCommands.cpp
