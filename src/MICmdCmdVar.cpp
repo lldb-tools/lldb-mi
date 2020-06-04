@@ -357,6 +357,78 @@ bool CMICmdCmdVarUpdate::ParseArgs() {
 }
 
 //++
+// Details: Print an SBValue or its children into the changelist response. This
+//          is a recursive function. Note that user code may contain infinite
+//          recursion, if a structure contains a pointer to itself (directly or
+//          indirectly) - but this code can't really break this recursion,
+//          because user still may open up elements in variables view into many
+//          levels of nesting. In practice recursion is stopped by the user who
+//          at some point stops expanding nested elements, and this would mean
+//          that at some point complex variable will not have its children
+//          listed with -var-list-children and that will stop recursion.
+// Return:  MIstatus::success - Function succeeded.
+//          MIstatus::failure - Function failed.
+//--
+bool CMICmdCmdVarUpdate::PrintValue(
+    CMICmnLLDBDebugSessionInfo::VariableInfoFormat_e eVarInfoFormat,
+    lldb::SBValue &value, const CMIUtilString &valueName) {
+
+  bool bPrintedChildren = false;
+  if (value.MightHaveChildren()) {
+    // Scan children recursively and print those that changed.
+    const MIuint nChildren = value.GetNumChildren();
+    for (MIuint i = 0; i < nChildren; i++) {
+      lldb::SBValue child = value.GetChildAtIndex(i);
+
+      // Did this child changed its value?
+      bool childValueChanged = false;
+      if (!ExamineSBValueForChange(child, childValueChanged))
+        return MIstatus::failure;
+      if (!childValueChanged)
+        continue;
+
+      // rValue.GetNumChildren() returns all members, but this function should
+      // print only those that has been listed by -var-list-children or
+      // -var-set-update-range. LLDB-MI doens't support the latter, though.
+      // I don't know any better way to check if member has been listed than
+      // to attempt to get the member by its name.
+      const CMIUtilString childName(
+          GetMemberName(valueName, CMICmnLLDBUtilSBValue(child).GetName(), i));
+      CMICmnLLDBDebugSessionInfoVarObj childVarObj;
+      if (!CMICmnLLDBDebugSessionInfoVarObj::VarObjGet(childName, childVarObj))
+        continue;
+
+      PrintValue(eVarInfoFormat, child, childName);
+      bPrintedChildren = true;
+    }
+  }
+
+  if (!bPrintedChildren ||
+      (value.GetType().GetTypeFlags() & lldb::eTypeIsPointer &&
+       value.GetValueDidChange())) {
+    // Print scalar values or complex value if its children were not printed.
+    // Pointer to a structure is also printed if its own value changed
+    // (structure is printed as `{...}`, while pointer to a structure is printed
+    // as an address value).
+    const bool bPrintValue =
+        ((eVarInfoFormat ==
+          CMICmnLLDBDebugSessionInfo::eVariableInfoFormat_AllValues) ||
+         (eVarInfoFormat ==
+              CMICmnLLDBDebugSessionInfo::eVariableInfoFormat_SimpleValues &&
+          value.GetNumChildren() == 0));
+    const CMIUtilString strValue(
+        CMICmnLLDBDebugSessionInfoVarObj::GetValueStringFormatted(
+            value, CMICmnLLDBDebugSessionInfoVarObj::eVarFormat_Natural));
+    const CMIUtilString strInScope(value.IsInScope() ? "true" : "false");
+
+    MIFormResponse(valueName, bPrintValue ? strValue.c_str() : nullptr,
+                   strInScope);
+  }
+
+  return MIstatus::success;
+}
+
+//++
 // Details: The invoker requires this function. The command does work in this
 // function.
 //          The command is likely to communicate with the LLDB SBDebugger in
@@ -417,16 +489,7 @@ bool CMICmdCmdVarUpdate::Execute() {
 
   if (m_bValueChanged) {
     varObj.UpdateValue();
-    const bool bPrintValue(
-        (eVarInfoFormat ==
-         CMICmnLLDBDebugSessionInfo::eVariableInfoFormat_AllValues) ||
-        (eVarInfoFormat ==
-             CMICmnLLDBDebugSessionInfo::eVariableInfoFormat_SimpleValues &&
-         rValue.GetNumChildren() == 0));
-    const CMIUtilString strValue(bPrintValue ? varObj.GetValueFormatted() : "");
-    const CMIUtilString strInScope(rValue.IsInScope() ? "true" : "false");
-    MIFormResponse(rVarObjName, bPrintValue ? strValue.c_str() : nullptr,
-                   strInScope);
+    return PrintValue(eVarInfoFormat, rValue, rVarObjName);
   }
 
   return MIstatus::success;
@@ -524,6 +587,11 @@ void CMICmdCmdVarUpdate::MIFormResponse(const CMIUtilString &vrStrVarName,
 //--
 bool CMICmdCmdVarUpdate::ExamineSBValueForChange(lldb::SBValue &vrwValue,
                                                  bool &vrwbChanged) {
+  // Note SBValue::GetValueDidChange() returns false if value changes from
+  // invalid (for example if it represents a field of a structure, and
+  // structure is pointed at with a NULL pointer) to a valid value, which is not
+  // a desired result for -var-update changelist - it will miss case of
+  // invalid-to-valid change.
   if (vrwValue.GetValueDidChange()) {
     vrwbChanged = true;
     return MIstatus::success;
