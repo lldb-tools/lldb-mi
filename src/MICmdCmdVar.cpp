@@ -40,6 +40,19 @@
 
 #include <algorithm>
 
+namespace {
+
+/// Return a well-formed name for the given variable child.
+CMIUtilString GetMemberName(const CMIUtilString &parentName,
+                            const CMIUtilString &memberName,
+                            MIuint memberIndex) {
+  if (memberName.empty())
+    return CMIUtilString::Format("%s.$%u", parentName.c_str(), memberIndex);
+  return CMIUtilString::Format("%s.%s", parentName.c_str(), memberName.c_str());
+}
+
+} // namespace
+
 //++
 // Details: CMICmdCmdVarCreate constructor.
 // Type:    Method.
@@ -993,10 +1006,7 @@ bool CMICmdCmdVarListChildren::Execute() {
     lldb::SBValue member = rValue.GetChildAtIndex(i);
     const CMICmnLLDBUtilSBValue utilValue(member);
     const CMIUtilString strExp = utilValue.GetName();
-    const CMIUtilString name(
-        strExp.empty() ? CMIUtilString::Format("%s.$%u", rVarObjName.c_str(), i)
-                       : CMIUtilString::Format("%s.%s", rVarObjName.c_str(),
-                                               strExp.c_str()));
+    const CMIUtilString name(GetMemberName(rVarObjName, strExp, i));
     const MIuint nChildren = member.GetNumChildren();
     const CMIUtilString strThreadId(
         CMIUtilString::Format("%u", member.GetThread().GetIndexID()));
