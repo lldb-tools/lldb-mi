@@ -303,11 +303,11 @@ bool CMICmnLLDBDebugSessionInfo::ResolvePath(const CMIUtilString &vstrUnknown,
     if (bYesAccessible) {
 #ifdef _WIN32
       if (nFoldersBack == (vecPathFolders.size() - 1)) {
-          // First folder is probably a Windows drive letter ==> must be returned
-          vwrResolvedPath = vecPathFolders[0] + strTestPath;
+        // First folder is probably a Windows drive letter ==> must be returned
+        vwrResolvedPath = vecPathFolders[0] + strTestPath;
       } else {
-#else  
-        vwrResolvedPath = strTestPath;
+#else
+      vwrResolvedPath = strTestPath;
 #endif
       }
       return MIstatus::success;
