@@ -283,7 +283,11 @@ bool CMICmnLLDBDebugSessionInfo::ResolvePath(const CMIUtilString &vstrUnknown,
   bool bOk = MIstatus::success;
 
   CMIUtilString::VecString_t vecPathFolders;
+#ifdef _WIN32
+  const MIuint nSplits = vwrResolvedPath.Split("\\", vecPathFolders);
+#else
   const MIuint nSplits = vwrResolvedPath.Split("/", vecPathFolders);
+#endif
   MIunused(nSplits);
   MIuint nFoldersBack = 1; // 1 is just the file (last element of vector)
   while (bOk && (vecPathFolders.size() >= nFoldersBack)) {
@@ -297,7 +301,15 @@ bool CMICmnLLDBDebugSessionInfo::ResolvePath(const CMIUtilString &vstrUnknown,
     bool bYesAccessible = false;
     bOk = AccessPath(strTestPath, bYesAccessible);
     if (bYesAccessible) {
-      vwrResolvedPath = strTestPath;
+#ifdef _WIN32
+      if (nFoldersBack == (vecPathFolders.size() - 1)) {
+          // First folder is probably a Windows drive letter ==> must be returned
+          vwrResolvedPath = vecPathFolders[0] + strTestPath;
+      } else {
+#else  
+        vwrResolvedPath = strTestPath;
+#endif
+      }
       return MIstatus::success;
     } else
       nFoldersBack++;
@@ -305,6 +317,17 @@ bool CMICmnLLDBDebugSessionInfo::ResolvePath(const CMIUtilString &vstrUnknown,
 
   // No files exist in the union of working directory and debuginfo path
   // Simply use the debuginfo path and let the IDE handle it.
+
+#ifdef _WIN32 // Under Windows we must replace "\\" by "/"
+  CMIUtilString strTestPath = vecPathFolders[0]; // Drive letter
+  MIuint nFolders = 1;
+  while (vecPathFolders.size() > nFolders) {
+    strTestPath += "/";
+    strTestPath += vecPathFolders[nFolders];
+    nFolders++;
+  }
+  vwrResolvedPath = strTestPath;
+#endif
 
   return bOk;
 }
