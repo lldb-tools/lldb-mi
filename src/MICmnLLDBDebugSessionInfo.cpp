@@ -28,6 +28,14 @@
 #include "MICmnResources.h"
 #include "Platform.h"
 
+// Paths separators
+#ifdef _WIN32
+#define PATH_SEPARATOR "\\" // 
+#else
+#define PATH_SEPARATOR "/"
+#endif // _WIN32
+#define RETURNED_PATH_SEPARATOR "/"
+
 //++
 // Details: CMICmnLLDBDebugSessionInfo constructor.
 // Type:    Method.
@@ -283,21 +291,30 @@ bool CMICmnLLDBDebugSessionInfo::ResolvePath(const CMIUtilString &vstrUnknown,
   bool bOk = MIstatus::success;
 
   CMIUtilString::VecString_t vecPathFolders;
-  const MIuint nSplits = vwrResolvedPath.Split("/", vecPathFolders);
+  const MIuint nSplits = vwrResolvedPath.Split(PATH_SEPARATOR, vecPathFolders);
   MIunused(nSplits);
   MIuint nFoldersBack = 1; // 1 is just the file (last element of vector)
   while (bOk && (vecPathFolders.size() >= nFoldersBack)) {
     CMIUtilString strTestPath;
     MIuint nFoldersToAdd = nFoldersBack;
     while (nFoldersToAdd > 0) {
-      strTestPath += "/";
+      strTestPath += RETURNED_PATH_SEPARATOR;
       strTestPath += vecPathFolders[vecPathFolders.size() - nFoldersToAdd];
       nFoldersToAdd--;
     }
     bool bYesAccessible = false;
     bOk = AccessPath(strTestPath, bYesAccessible);
     if (bYesAccessible) {
-      vwrResolvedPath = strTestPath;
+#ifdef _WIN32
+      if (nFoldersBack == (vecPathFolders.size() - 1)) {
+        // First folder is probably a Windows drive letter ==> must be returned
+        vwrResolvedPath = vecPathFolders[0] + strTestPath;
+      } else {
+#endif
+        vwrResolvedPath = strTestPath;
+#ifdef _WIN32
+      }
+#endif
       return MIstatus::success;
     } else
       nFoldersBack++;
@@ -305,6 +322,17 @@ bool CMICmnLLDBDebugSessionInfo::ResolvePath(const CMIUtilString &vstrUnknown,
 
   // No files exist in the union of working directory and debuginfo path
   // Simply use the debuginfo path and let the IDE handle it.
+
+#ifdef _WIN32 // Under Windows we must replace "\\" by "/"
+  CMIUtilString strTestPath = vecPathFolders[0]; // Drive letter
+  MIuint nFolders = 1;
+  while (vecPathFolders.size() > nFolders) {
+    strTestPath += RETURNED_PATH_SEPARATOR;
+    strTestPath += vecPathFolders[nFolders];
+    nFolders++;
+  }
+  vwrResolvedPath = strTestPath;
+#endif
 
   return bOk;
 }
