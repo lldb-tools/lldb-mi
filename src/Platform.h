@@ -7,7 +7,7 @@
 //===----------------------------------------------------------------------===//
 #pragma once
 
-#if defined(_MSC_VER)
+#if defined(_WIN32)
 
 #include <inttypes.h>
 #include <io.h>
@@ -45,7 +45,9 @@ struct termios {
   speed_t c_ospeed; // output speed
 };
 
+#if !defined(__MINGW32__) || !defined(_PID_T_) || defined(NO_OLDNAMES)
 typedef long pid_t;
+#endif
 
 #define STDIN_FILENO 0
 #define PATH_MAX 32768
