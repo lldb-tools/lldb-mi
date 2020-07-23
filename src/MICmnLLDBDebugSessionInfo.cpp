@@ -307,7 +307,7 @@ bool CMICmnLLDBDebugSessionInfo::ResolvePath(const CMIUtilString &vstrUnknown,
         vwrResolvedPath = vecPathFolders[0] + strTestPath;
       } else {
 #endif
-      vwrResolvedPath = strTestPath;
+        vwrResolvedPath = strTestPath;
 #ifdef _WIN32
       }
 #endif
