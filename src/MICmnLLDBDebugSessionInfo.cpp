@@ -306,10 +306,11 @@ bool CMICmnLLDBDebugSessionInfo::ResolvePath(const CMIUtilString &vstrUnknown,
         // First folder is probably a Windows drive letter ==> must be returned
         vwrResolvedPath = vecPathFolders[0] + strTestPath;
       } else {
-#else
-      vwrResolvedPath = strTestPath;
 #endif
+      vwrResolvedPath = strTestPath;
+#ifdef _WIN32
       }
+#endif
       return MIstatus::success;
     } else
       nFoldersBack++;
