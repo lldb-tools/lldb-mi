@@ -17,6 +17,8 @@
 // Windows headers:
 #ifdef _WIN32
 
+#include <windows.h>
+
 // Debugging:
 #ifdef _DEBUG
 #include <crtdbg.h>
