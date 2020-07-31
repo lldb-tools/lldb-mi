@@ -324,14 +324,8 @@ bool CMICmnLLDBDebugSessionInfo::ResolvePath(const CMIUtilString &vstrUnknown,
   // No files exist in the union of working directory and debuginfo path
   // Simply use the debuginfo path and let the IDE handle it.
 
-#ifdef _WIN32 // Under Windows we must replace "\\" by "/"
-  CMIUtilString strTestPath = vecPathFolders[0]; // Drive letter
-  MIuint nFolders = 1;
-  while (vecPathFolders.size() > nFolders) {
-    strTestPath += "/";
-    strTestPath += vecPathFolders[nFolders];
-    nFolders++;
-  }
+#ifdef _WIN32 // Under Windows we must returned vwrResolvedPath to replace "\\"
+              // by "/"
   vwrResolvedPath = strTestPath;
 #endif
 
