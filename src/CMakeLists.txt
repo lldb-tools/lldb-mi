@@ -85,11 +85,14 @@ else()
   find_library(lib_lldb NAMES lldb liblldb HINTS ${LLVM_LIBRARY_DIRS})
 endif()
 
-find_library(lib_llvm LLVM HINTS ${LLVM_LIBRARY_DIRS})
+find_library(lib_llvm_shared LLVM HINTS ${LLVM_LIBRARY_DIRS})
 
-if (NOT lib_llvm)
+if (lib_llvm_shared)
+  set(lib_llvm "${lib_llvm_shared}")
+else()
   message(STATUS "Can't find LLVM shared library, falling back to static linking LLVMSupport")
-  find_library(lib_llvm LLVMSupport HINTS ${LLVM_LIBRARY_DIRS})
+  find_library(lib_llvm_static LLVMSupport HINTS ${LLVM_LIBRARY_DIRS})
+  set(lib_llvm "${lib_llvm_static}")
 
   get_property(LLVMSupportDeps GLOBAL PROPERTY LLVMBUILD_LIB_DEPS_LLVMSupport)
   foreach(dependency ${LLVMSupportDeps})
