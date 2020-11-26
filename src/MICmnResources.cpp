@@ -223,18 +223,18 @@ const CMICmnResources::SRsrcTextData
         {IDS_LLDBOUTOFBAND_ERR_PROCESS_INVALID,
          "LLDB Out-of-band. Invalid '%s' in '%s'"},
         {IDS_LLDBOUTOFBAND_ERR_STOPPT_NOTFOUND,
-         "LLDB Out-of-band. %s. Stoppoint information for stoppoint ID "
+         "LLDB Out-of-band. %s(). Stoppoint information for stoppoint ID "
          "%" PRIu64 " not found"},
         {IDS_LLDBOUTOFBAND_ERR_STOPPT_INFO_GET,
-         "LLDB Out-of-band. %s. Failed to retrieve stoppoint information for "
-         "breakpoint/watchpoint with LLDB ID %" PRId32},
+         "LLDB Out-of-band. %s(). Failed to retrieve stoppoint information for "
+         "for %s with LLDB ID %" PRId32},
         {IDS_LLDBOUTOFBAND_ERR_STOPPT_INFO_SET,
-         "LLDB Out-of-band. %s. Failed to set stoppoint information for "
+         "LLDB Out-of-band. %s(). Failed to set stoppoint information for "
          "unified breakpoint ID %" PRIu64},
         {IDS_LLDBOUTOFBAND_ERR_FORM_MI_RESPONSE,
-         "LLDB Out-of-band. %s. Failed to form the MI Out-of-band response"},
+         "LLDB Out-of-band. %s(). Failed to form the MI Out-of-band response"},
         {IDS_LLDBOUTOFBAND_ERR_FRAME_INFO_GET,
-         "LLDB Out-of-band. %s. Failed to retrieve frame information"},
+         "LLDB Out-of-band. %s(). Failed to retrieve frame information"},
         {IDS_LLDBOUTOFBAND_ERR_SETNEWDRIVERSTATE,
          "LLDB Out-of-band. %s. Event handler tried to set new MI Driver "
          "running state and failed. %s"},

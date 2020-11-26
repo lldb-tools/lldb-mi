@@ -51,9 +51,11 @@ private:
   bool GetProcessStdout();
   bool GetProcessStderr();
   bool HandleEventSBBreakPoint(const lldb::SBEvent &vEvent);
-  bool HandleEventSBBreakpointCmn(const lldb::SBEvent &vEvent);
-  bool HandleEventSBBreakpointAdded(const lldb::SBEvent &vEvent);
+  bool HandleEventSBWatchpoint(const lldb::SBEvent &vEvent);
   bool HandleEventSBBreakpointLocationsAdded(const lldb::SBEvent &vEvent);
+  template <class T> bool HandleEventStoppointCmn(T &vrStopPt);
+  template <class T> bool HandleEventStoppointAdded(T &vrStopPt);
+  template <class T> bool RemoveStoppointInfo(T &vrStopPt);
   bool HandleEventSBProcess(const lldb::SBEvent &vEvent);
   bool HandleEventSBTarget(const lldb::SBEvent &vEvent);
   bool HandleEventSBThread(const lldb::SBEvent &vEvent);
