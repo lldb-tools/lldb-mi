@@ -236,7 +236,7 @@ const CMICmnResources::SRsrcTextData
         {IDS_LLDBOUTOFBAND_ERR_FRAME_INFO_GET,
          "LLDB Out-of-band. %s(). Failed to retrieve frame information"},
         {IDS_LLDBOUTOFBAND_ERR_SETNEWDRIVERSTATE,
-         "LLDB Out-of-band. %s. Event handler tried to set new MI Driver "
+         "LLDB Out-of-band. %s(). Event handler tried to set new MI Driver "
          "running state and failed. %s"},
         {IDS_LLDBOUTOFBAND_ERR_STOPPT_CNT_EXCEEDED,
          "LLDB Out-of-band. '%s'. Number of valid stoppoint exceeded %" PRIu64

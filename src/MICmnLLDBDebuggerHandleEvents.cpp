@@ -361,7 +361,7 @@ bool CMICmnLLDBDebuggerHandleEvents::HandleEventSBBreakpointLocationsAdded(
 //          MIstatus::failure - Functionality failed.
 // Throws:  None.
 //--
-template <class T>
+template <class T, class>
 bool CMICmnLLDBDebuggerHandleEvents::HandleEventStoppointCmn(T &vrStopPt) {
   if (!vrStopPt.IsValid())
     return MIstatus::success;
@@ -486,7 +486,7 @@ void FillInPointTypeDependentInfo(
 //          MIstatus::failure - Functionality failed.
 // Throws:  None.
 //--
-template <class T>
+template <class T, class>
 bool CMICmnLLDBDebuggerHandleEvents::HandleEventStoppointAdded(T &vrStopPt) {
   if (!vrStopPt.IsValid())
     return MIstatus::failure;
@@ -596,7 +596,7 @@ CMICmnLLDBDebuggerHandleEvents::HandleEventStoppointAdded(lldb::SBBreakpoint &);
 template bool
 CMICmnLLDBDebuggerHandleEvents::HandleEventStoppointAdded(lldb::SBWatchpoint &);
 
-template <class T>
+template <class T, class>
 bool CMICmnLLDBDebuggerHandleEvents::RemoveStoppointInfo(T &vrStopPt) {
   auto eType = std::is_same<std::remove_cv_t<T>, lldb::SBBreakpoint>::value
                    ? CMICmnLLDBDebugSessionInfo::eStoppointType_Breakpoint
@@ -1140,6 +1140,7 @@ bool CMICmnLLDBDebuggerHandleEvents::HandleProcessEventStateStopped(
     break;
   case lldb::eStopReasonWatchpoint:
     pEventType = "eStopReasonWatchpoint";
+    bOk = HandleProcessEventStopReasonWatchpoint();
     break;
   case lldb::eStopReasonSignal:
     pEventType = "eStopReasonSignal";
@@ -1433,10 +1434,39 @@ bool CMICmnLLDBDebuggerHandleEvents::HandleProcessEventStopReasonBreakpoint() {
   const MIuint64 brkPtId =
       sbProcess.GetSelectedThread().GetStopReasonDataAtIndex(0);
   lldb::SBBreakpoint brkPt =
-      CMICmnLLDBDebugSessionInfo::Instance().GetTarget().GetBreakpointAtIndex(
+      CMICmnLLDBDebugSessionInfo::Instance().GetTarget().FindBreakpointByID(
           (MIuint)brkPtId);
 
   return MiStoppedAtBreakPoint(brkPtId, brkPt);
+}
+
+//++
+// Details: Asynchronous event handler for LLDB Process stop reason watchpoint.
+// Type:    Method.
+// Args:    None.
+// Return:  MIstatus::success - Functionality succeeded.
+//          MIstatus::failure - Functionality failed.
+// Throws:  None.
+//--
+bool CMICmnLLDBDebuggerHandleEvents::HandleProcessEventStopReasonWatchpoint() {
+  // CODETAG_DEBUG_SESSION_RUNNING_PROG_RECEIVED_SIGINT_PAUSE_PROGRAM
+  if (!CMIDriver::Instance().SetDriverStateRunningNotDebugging()) {
+    const CMIUtilString &rErrMsg(CMIDriver::Instance().GetErrorDescription());
+    SetErrorDescription(
+        CMIUtilString::Format(MIRSRC(IDS_LLDBOUTOFBAND_ERR_SETNEWDRIVERSTATE),
+                              __func__, rErrMsg.c_str()));
+    return MIstatus::failure;
+  }
+
+  lldb::SBProcess sbProcess =
+      CMICmnLLDBDebugSessionInfo::Instance().GetProcess();
+  const auto watchPtId = static_cast<uint32_t>(
+      sbProcess.GetSelectedThread().GetStopReasonDataAtIndex(0U));
+  lldb::SBWatchpoint watchPt =
+      CMICmnLLDBDebugSessionInfo::Instance().GetTarget().FindWatchpointByID(
+          watchPtId);
+
+  return MiStoppedAtWatchpoint(watchPt);
 }
 
 //++
@@ -1535,6 +1565,80 @@ bool CMICmnLLDBDebuggerHandleEvents::MiStoppedAtBreakPoint(
   }
 
   return MIstatus::success;
+}
+
+//++
+// Details: Form the MI Out-of-band response for stopped reason on hitting a
+//          watch point.
+// Type:    Method.
+// Args:    vrWatchPtId    - (R) The LLDB watch point.
+// Return:  MIstatus::success - Functionality succeeded.
+//          MIstatus::failure - Functionality failed.
+// Throws:  None.
+//--
+bool CMICmnLLDBDebuggerHandleEvents::MiStoppedAtWatchpoint(
+    lldb::SBWatchpoint &vrWatchPt) {
+  CMICmnLLDBDebugSessionInfo &rSessionInfo(
+      CMICmnLLDBDebugSessionInfo::Instance());
+
+  auto nGdbBrkPtId = rSessionInfo.GetOrCreateMiStopPtId(
+      vrWatchPt.GetID(), CMICmnLLDBDebugSessionInfo::eStoppointType_Watchpoint);
+
+  CMICmnLLDBDebugSessionInfo::SStopPtInfo sStopPtInfo;
+  if (!rSessionInfo.RecordStopPtInfoGet(nGdbBrkPtId, sStopPtInfo))
+    return MIstatus::failure;
+
+  const char *reason = sStopPtInfo.m_watchPtRead
+                           ? sStopPtInfo.m_watchPtWrite
+                                 ? "access-watchpoint-trigger"
+                                 : "read-watchpoint-trigger"
+                           : "watchpoint-trigger";
+
+  const CMICmnMIValueConst miValueConstReason(reason);
+  const CMICmnMIValueResult miValueResultReason("reason", miValueConstReason);
+  CMICmnMIOutOfBandRecord miOutOfBandRecord(
+      CMICmnMIOutOfBandRecord::eOutOfBand_Stopped, miValueResultReason);
+
+  // value={...} is not supported yet because it is not obvious how to get the
+  // old value.
+
+  // wpt={...}
+  CMICmnMIValueResult miValueResultWpt;
+  rSessionInfo.MIResponseFormWatchPtInfo(sStopPtInfo, miValueResultWpt);
+  miOutOfBandRecord.Add(miValueResultWpt);
+
+  // frame={...}
+  lldb::SBThread thread = rSessionInfo.GetProcess().GetSelectedThread();
+  if (thread.GetNumFrames() > 0) {
+    CMICmnMIValueTuple miValueTupleFrame;
+    if (!rSessionInfo.MIResponseFormFrameInfo(
+            thread, 0,
+            CMICmnLLDBDebugSessionInfo::eFrameInfoFormat_AllArguments,
+            miValueTupleFrame))
+      return MIstatus::failure;
+
+    const CMICmnMIValueResult miValueResultFrame("frame", miValueTupleFrame);
+    miOutOfBandRecord.Add(miValueResultFrame);
+  }
+
+  // thread-id=...
+  const CMIUtilString strThreadId(
+      CMIUtilString::Format("%d", thread.GetIndexID()));
+  const CMICmnMIValueConst miValueConstThread(strThreadId);
+  const CMICmnMIValueResult miValueResultThread("thread-id",
+                                                miValueConstThread);
+  miOutOfBandRecord.Add(miValueResultThread);
+
+  // stopped-threads=...
+  const CMICmnMIValueConst miValueConstStopped("all");
+  const CMICmnMIValueResult miValueResultStopped("stopped-threads",
+                                                 miValueConstStopped);
+  miOutOfBandRecord.Add(miValueResultStopped);
+
+  if (!MiOutOfBandRecordToStdout(miOutOfBandRecord))
+    return MIstatus::failure;
+
+  return CMICmnStreamStdout::WritePrompt();
 }
 
 //++
