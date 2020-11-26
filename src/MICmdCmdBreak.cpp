@@ -14,7 +14,9 @@
 //              CMICmdCmdBreakCondition         implementation.
 
 // Third Party Headers:
+#include "cassert"
 #include "lldb/API/SBBreakpointLocation.h"
+#include "lldb/API/SBThread.h"
 
 // In-house headers:
 #include "MICmdArgValFile.h"
@@ -1127,4 +1129,247 @@ bool CMICmdCmdBreakCondition::UpdateStopPtInfo(
   }
   sStopPtInfo.m_strCondition = m_strBrkPtExpr;
   return rSessionInfo.RecordStopPtInfo(sStopPtInfo);
+}
+
+// Details: CMICmdCmdBreakWatch constructor.
+// Type:    Method.
+// Args:    None.
+// Return:  None.
+// Throws:  None.
+//--
+CMICmdCmdBreakWatch::CMICmdCmdBreakWatch()
+    : m_constStrArgNamedAccessWatchPt("a"), m_constStrArgNamedReadWatchPt("r"),
+      m_constStrArgNamedExpr("expr"), m_stopPtInfo(), m_watchPt() {
+  // Command factory matches this name with that received from the stdin stream
+  m_strMiCmd = "break-watch";
+
+  // Required by the CMICmdFactory when registering *this command
+  m_pSelfCreatorFn = &CMICmdCmdBreakWatch::CreateSelf;
+}
+
+//++
+// Details: The invoker requires this function. The parses the command line
+//          options arguments to extract values for each of those arguments.
+// Type:    Overridden.
+// Args:    None.
+// Return:  MIstatus::success - Functional succeeded.
+//          MIstatus::failure - Functional failed.
+// Throws:  None.
+//--
+bool CMICmdCmdBreakWatch::ParseArgs() {
+  m_setCmdArgs.Add(new CMICmdArgValOptionShort(m_constStrArgNamedAccessWatchPt,
+                                               false, true));
+  m_setCmdArgs.Add(
+      new CMICmdArgValOptionShort(m_constStrArgNamedReadWatchPt, false, true));
+  m_setCmdArgs.Add(new CMICmdArgValText(m_constStrArgNamedExpr, true, true));
+  return ParseValidateCmdOptions();
+}
+
+static bool FindLocalVariableAddress(lldb::SBTarget &rSbTarget,
+                                     lldb::SBFrame &rSbFrame,
+                                     const CMIUtilString &rExpression,
+                                     lldb::addr_t &rAddress, size_t &rSize) {
+  auto sbVariableValue = rSbFrame.GetValueForVariablePath(
+      rExpression.c_str(), lldb::eNoDynamicValues);
+  auto sbAddress = sbVariableValue.GetAddress();
+
+  bool isValid = sbVariableValue && sbAddress;
+  if (isValid) {
+    rAddress = sbAddress.GetLoadAddress(rSbTarget);
+    rSize = sbVariableValue.GetByteSize();
+  }
+
+  return isValid;
+}
+
+static bool FindGlobalVariableAddress(lldb::SBTarget &rSbTarget,
+                                      lldb::SBFrame &rSbFrame,
+                                      const CMIUtilString &rExpression,
+                                      lldb::addr_t &rAddress, size_t &rSize) {
+  auto sbGlobalVariableValue =
+      rSbTarget.FindFirstGlobalVariable(rExpression.c_str());
+  if (sbGlobalVariableValue.IsValid()) {
+    auto sbAddress = sbGlobalVariableValue.GetAddress();
+    if (sbAddress.IsValid()) {
+      rAddress = sbAddress.GetLoadAddress(rSbTarget);
+      rSize = sbGlobalVariableValue.GetByteSize();
+      return MIstatus::success;
+    }
+  }
+
+  // In case the previous part didn't succeed, the expression must be something
+  // like "a.b". For locally-visible variables, there is
+  // SBFrame::GetValueForVariablePath that can handle this kind of expressions
+  // but there is no any analogue of this function for global variables. So, we
+  // have to try an address expression at least.
+  auto addressExpression = "&(" + rExpression + ")";
+  auto sbExpressionValue =
+      rSbFrame.EvaluateExpression(addressExpression.c_str());
+
+  lldb::SBError sbError;
+  rAddress =
+      static_cast<lldb::addr_t>(sbExpressionValue.GetValueAsUnsigned(sbError));
+  if (sbError.Fail())
+    return false;
+
+  assert(sbExpressionValue.TypeIsPointerType());
+  rSize = sbExpressionValue.GetType().GetPointeeType().GetByteSize();
+
+  return true;
+}
+
+static bool FindAddressByExpressionEvaluation(lldb::SBTarget &rSbTarget,
+                                              lldb::SBFrame &rSbFrame,
+                                              const CMIUtilString &rExpression,
+                                              lldb::addr_t &rAddress,
+                                              size_t &rSize) {
+  auto sbExpressionValue = rSbFrame.EvaluateExpression(rExpression.c_str());
+
+  lldb::SBError sbError;
+  rAddress =
+      static_cast<lldb::addr_t>(sbExpressionValue.GetValueAsUnsigned(sbError));
+  if (sbError.Fail())
+    return false;
+
+  if (sbExpressionValue.TypeIsPointerType())
+    rSize = sbExpressionValue.GetType().GetPointeeType().GetByteSize();
+  else
+    rSize = rSbTarget.GetDataByteSize();
+
+  return true;
+}
+
+//++
+// Details: The invoker requires this function. The command does work in this
+//          function. The command is likely to communicate with the LLDB
+//          SBDebugger in here.
+// Type:    Overridden.
+// Args:    None.
+// Return:  MIstatus::success - Functional succeeded.
+//          MIstatus::failure - Functional failed.
+// Throws:  None.
+//--
+bool CMICmdCmdBreakWatch::Execute() {
+  CMICMDBASE_GETOPTION(pArgAccess, OptionShort,
+                       m_constStrArgNamedAccessWatchPt);
+  CMICMDBASE_GETOPTION(pArgRead, OptionShort, m_constStrArgNamedReadWatchPt);
+  CMICMDBASE_GETOPTION(pArgExpr, Text, m_constStrArgNamedExpr);
+
+  // Ask LLDB for the target to check if we have valid or dummy one.
+  CMICmnLLDBDebugSessionInfo &rSessionInfo(
+      CMICmnLLDBDebugSessionInfo::Instance());
+  auto sbTarget = rSessionInfo.GetTarget();
+  auto sbProcess = rSessionInfo.GetProcess();
+  auto sbThread = sbProcess.GetSelectedThread();
+  auto sbFrame = sbThread.GetSelectedFrame();
+
+  if (!sbFrame) {
+    SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_INVALID_FRAME),
+                                   m_cmdData.strMiCmd.c_str()));
+    return MIstatus::failure;
+  }
+
+  lldb::addr_t address;
+  size_t size;
+
+  bool isVariable = true;
+  auto expression = pArgExpr->GetValue();
+  if (!FindLocalVariableAddress(sbTarget, sbFrame, expression, address, size) &&
+      !FindGlobalVariableAddress(sbTarget, sbFrame, expression, address,
+                                 size)) {
+    isVariable = false;
+    if (!FindAddressByExpressionEvaluation(sbTarget, sbFrame, expression,
+                                           address, size)) {
+      SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_FIND_EXPR_ADDRESS),
+                                     m_cmdData.strMiCmd.c_str(),
+                                     expression.c_str()));
+      return MIstatus::failure;
+    }
+  }
+
+  bool read = pArgAccess->GetFound() || pArgRead->GetFound();
+  bool write = !pArgRead->GetFound();
+
+  lldb::SBError sbError;
+  m_watchPt = sbTarget.WatchAddress(address, size, read, write, sbError);
+
+  if (!m_watchPt) {
+    const char *type = "write";
+    if (pArgAccess->GetFound())
+      type = "access";
+    else if (pArgRead->GetFound())
+      type = "read";
+
+    SetError(CMIUtilString::Format(
+        MIRSRC(IDS_CMD_ERR_CREATE_WATCHPT), m_cmdData.strMiCmd.c_str(), type,
+        static_cast<uint64_t>(address), static_cast<uint64_t>(size)));
+    return MIstatus::failure;
+  }
+
+  if (!rSessionInfo.GetStopPtInfo(m_watchPt, m_stopPtInfo)) {
+    SetError(CMIUtilString::Format(
+        MIRSRC(IDS_CMD_ERR_WATCHPT_STOPPT_INFO_CREATE),
+        m_cmdData.strMiCmd.c_str(), static_cast<uint64_t>(m_watchPt.GetID())));
+    return MIstatus::failure;
+  }
+
+  m_stopPtInfo.m_bDisp = false;
+  m_stopPtInfo.m_bEnabled = m_watchPt.IsEnabled();
+  m_stopPtInfo.m_bHaveArgOptionThreadGrp = false;
+  m_stopPtInfo.m_nTimes = m_watchPt.GetHitCount();
+  m_stopPtInfo.m_watchPtVariable = isVariable;
+  m_stopPtInfo.m_watchPtExpr = expression;
+  m_stopPtInfo.m_watchPtRead = read;
+  m_stopPtInfo.m_watchPtWrite = write;
+  m_stopPtInfo.m_nIgnore = m_watchPt.GetIgnoreCount();
+  m_stopPtInfo.m_bPending = false;
+  m_stopPtInfo.m_bCondition = m_watchPt.GetCondition() != nullptr;
+  m_stopPtInfo.m_strCondition =
+      m_stopPtInfo.m_bCondition ? m_watchPt.GetCondition() : "";
+  m_stopPtInfo.m_bBrkPtThreadId = false;
+
+  if (!rSessionInfo.RecordStopPtInfo(m_stopPtInfo)) {
+    SetError(CMIUtilString::Format(
+        MIRSRC(IDS_CMD_ERR_STOPPT_INFO_SET), m_cmdData.strMiCmd.c_str(),
+        static_cast<uint64_t>(m_stopPtInfo.m_nMiId)));
+    return MIstatus::failure;
+  }
+
+  return MIstatus::success;
+}
+
+//++
+// Details: The invoker requires this function. The command prepares a MI Record
+//          Result for the work carried out in the Execute().
+// Type:    Overridden.
+// Args:    None.
+// Return:  MIstatus::success - Functional succeeded.
+//          MIstatus::failure - Functional failed.
+// Throws:  None.
+//--
+bool CMICmdCmdBreakWatch::Acknowledge() {
+  assert(m_watchPt.IsValid());
+
+  CMICmnMIValueResult miValueResult;
+  CMICmnLLDBDebugSessionInfo::Instance().MIResponseFormWatchPtInfo(
+      m_stopPtInfo, miValueResult);
+
+  const CMICmnMIResultRecord miRecordResult(
+      m_cmdData.strMiCmdToken, CMICmnMIResultRecord::eResultClass_Done,
+      miValueResult);
+  m_miResultRecord = miRecordResult;
+
+  return MIstatus::success;
+}
+
+//++
+// Details: Required by the CMICmdFactory when registering *this command. The
+//          factory calls this function to create an instance of *this command.
+// Type:    Static method.
+// Args:    None.
+// Return:  CMICmdBase * - Pointer to a new command.
+// Throws:  None.
+//--
+CMICmdBase *CMICmdCmdBreakWatch::CreateSelf() {
+  return new CMICmdCmdBreakWatch();
 }

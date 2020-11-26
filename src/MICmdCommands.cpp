@@ -77,6 +77,7 @@ bool MICmnCommands::RegisterAll() {
   bOk &= Register<CMICmdCmdBreakDisable>();
   bOk &= Register<CMICmdCmdBreakEnable>();
   bOk &= Register<CMICmdCmdBreakInsert>();
+  bOk &= Register<CMICmdCmdBreakWatch>();
   bOk &= Register<CMICmdCmdDataDisassemble>();
   bOk &= Register<CMICmdCmdDataEvaluateExpression>();
   bOk &= Register<CMICmdCmdDataInfoLine>();
