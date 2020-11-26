@@ -380,6 +380,20 @@ const CMICmnResources::SRsrcTextData
         {IDS_CMD_ERR_STOPPT_CNT_EXCEEDED,
          "Command '%s'. Number of valid stoppoint exceeded %" PRIu64
          ". Cannot create new stoppoint %" PRIu64},
+        {IDS_CMD_ERR_INVALID_FRAME,
+         "Command '%s'. The selected frame is invalid."},
+        {IDS_CMD_ERR_WATCHPT_STOPPT_INFO_CREATE,
+         "Command '%s'. Failed to create stoppoint "
+         "information for watchpoint LLDB ID %" PRIu64},
+        {IDS_CMD_ERR_STOPPT_INFO_SET,
+         "Command '%s'. Failed to set stoppoint "
+         "information for unified stoppoint ID %" PRIu64},
+        {IDS_CMD_ERR_FIND_EXPR_ADDRESS,
+         "Command '%s'. Expression '%s' does not specify a locally visible "
+         "or global variable and cannot be interpreted as an address"},
+        {IDS_CMD_ERR_CREATE_WATCHPT,
+         "Command '%s'. Couldn't create %s watchpoint at address 0x%" PRIx64
+         "with size %" PRIu64},
         {IDS_CMD_ERR_SOME_ERROR, "Command '%s'. Error: %s"},
         {IDS_CMD_ERR_THREAD_INVALID, "Command '%s'. Thread ID invalid"},
         {IDS_CMD_ERR_THREAD_FRAME_RANGE_INVALID,

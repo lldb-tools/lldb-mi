@@ -29,6 +29,7 @@
 
 // Third party headers:
 #include "lldb/API/SBBreakpoint.h"
+#include "lldb/API/SBWatchpoint.h"
 
 // In-house headers:
 #include "MICmdBase.h"
@@ -295,4 +296,40 @@ private:
                                                       // surrounded by quotes
   MIuint m_nMiStopPtId;
   CMIUtilString m_strBrkPtExpr;
+};
+
+//++
+//============================================================================
+// Details: MI command class. MI commands derived from the command base class.
+//          *this class implements MI command "break-watch".
+//--
+class CMICmdCmdBreakWatch : public CMICmdBase {
+  // Statics:
+public:
+  // Required by the CMICmdFactory when registering *this command
+  static CMICmdBase *CreateSelf();
+
+  // Methods:
+public:
+  /* ctor */ CMICmdCmdBreakWatch();
+
+  // Overridden:
+public:
+  // From CMICmdInvoker::ICmd
+  bool Execute() override;
+  bool Acknowledge() override;
+  bool ParseArgs() override;
+  // From CMICmnBase
+  /* dtor */ ~CMICmdCmdBreakWatch() override = default;
+
+  // Methods:
+private:
+  // Attributes:
+private:
+  const CMIUtilString m_constStrArgNamedAccessWatchPt;
+  const CMIUtilString m_constStrArgNamedReadWatchPt;
+  const CMIUtilString m_constStrArgNamedExpr;
+
+  CMICmnLLDBDebugSessionInfo::SStopPtInfo m_stopPtInfo;
+  lldb::SBWatchpoint m_watchPt;
 };
