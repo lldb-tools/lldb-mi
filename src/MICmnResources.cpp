@@ -222,15 +222,15 @@ const CMICmnResources::SRsrcTextData
          "not recognised"},
         {IDS_LLDBOUTOFBAND_ERR_PROCESS_INVALID,
          "LLDB Out-of-band. Invalid '%s' in '%s'"},
-        {IDS_LLDBOUTOFBAND_ERR_BRKPT_NOTFOUND, "LLDB Out-of-band. %s. "
-                                               "Breakpoint information for "
-                                               "breakpoint ID %d not found"},
-        {IDS_LLDBOUTOFBAND_ERR_BRKPT_INFO_GET,
-         "LLDB Out-of-band. %s. Failed to retrieve breakpoint information for "
-         "for breakpoint ID %d"},
-        {IDS_LLDBOUTOFBAND_ERR_BRKPT_INFO_SET, "LLDB Out-of-band. %s. Failed "
-                                               "to set breakpoint information "
-                                               "for for breakpoint ID %d"},
+        {IDS_LLDBOUTOFBAND_ERR_STOPPT_NOTFOUND,
+         "LLDB Out-of-band. %s. Stoppoint information for stoppoint ID "
+         "%" PRIu64 " not found"},
+        {IDS_LLDBOUTOFBAND_ERR_STOPPT_INFO_GET,
+         "LLDB Out-of-band. %s. Failed to retrieve stoppoint information for "
+         "breakpoint/watchpoint with LLDB ID %" PRId32},
+        {IDS_LLDBOUTOFBAND_ERR_STOPPT_INFO_SET,
+         "LLDB Out-of-band. %s. Failed to set stoppoint information for "
+         "unified breakpoint ID %" PRIu64},
         {IDS_LLDBOUTOFBAND_ERR_FORM_MI_RESPONSE,
          "LLDB Out-of-band. %s. Failed to form the MI Out-of-band response"},
         {IDS_LLDBOUTOFBAND_ERR_FRAME_INFO_GET,
@@ -238,9 +238,9 @@ const CMICmnResources::SRsrcTextData
         {IDS_LLDBOUTOFBAND_ERR_SETNEWDRIVERSTATE,
          "LLDB Out-of-band. %s. Event handler tried to set new MI Driver "
          "running state and failed. %s"},
-        {IDS_LLDBOUTOFBAND_ERR_BRKPT_CNT_EXCEEDED,
-         "LLDB Out-of-band. '%s'. Number of valid breakpoint exceeded %d. "
-         "Cannot create new breakpoint with ID %d"},
+        {IDS_LLDBOUTOFBAND_ERR_STOPPT_CNT_EXCEEDED,
+         "LLDB Out-of-band. '%s'. Number of valid stoppoint exceeded %" PRIu64
+         ". Cannot create new breakpoint with ID %" PRIu64},
         {IDS_DBGSESSION_ERR_SHARED_DATA_ADD, "LLDB debug session info. Failed "
                                              "to add '%s' data to the shared "
                                              "data command container"},
@@ -376,10 +376,10 @@ const CMICmnResources::SRsrcTextData
          "Command '%s'. Incorrect format for breakpoint location '%s'"},
         {IDS_CMD_ERR_BRKPT_LOCATION_NOT_FOUND,
          "Command '%s'. Breakpoint location '%s' not found"},
-        {IDS_CMD_ERR_BRKPT_INVALID, "Command '%s'. Breakpoint '%s' invalid"},
-        {IDS_CMD_ERR_BRKPT_CNT_EXCEEDED, "Command '%s'. Number of valid "
-                                         "breakpoint exceeded %d. Cannot "
-                                         "create new breakpoint '%s'"},
+        {IDS_CMD_ERR_STOPPT_INVALID, "Command '%s'. Stoppoint '%s' invalid"},
+        {IDS_CMD_ERR_STOPPT_CNT_EXCEEDED,
+         "Command '%s'. Number of valid stoppoint exceeded %" PRIu64
+         ". Cannot create new stoppoint %" PRIu64},
         {IDS_CMD_ERR_SOME_ERROR, "Command '%s'. Error: %s"},
         {IDS_CMD_ERR_THREAD_INVALID, "Command '%s'. Thread ID invalid"},
         {IDS_CMD_ERR_THREAD_FRAME_RANGE_INVALID,
@@ -423,8 +423,9 @@ const CMICmnResources::SRsrcTextData
          "Command '%s'. Invalid location format '%s'"},
         {IDS_CMD_ERR_INVALID_FORMAT_TYPE,
          "Command '%s'. Invalid var format type '%s'"},
-        {IDS_CMD_ERR_BRKPT_INFO_OBJ_NOT_FOUND,
-         "Command '%s'. Breakpoint information for breakpoint ID %d not found"},
+        {IDS_CMD_ERR_STOPPT_INFO_OBJ_NOT_FOUND,
+         "Command '%s'. Stoppoint information for unified stoppoint ID %" PRIu64
+         " not found"},
         {IDS_CMD_ERR_LLDB_ERR_WRITE_MEM_BYTES, "Command '%s'. Unable to write "
                                                "memory block of %u bytes at "
                                                "address 0x%016" PRIx64 ": %s "},
