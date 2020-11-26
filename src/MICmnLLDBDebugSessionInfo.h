@@ -14,6 +14,7 @@
 #include "lldb/API/SBProcess.h"
 #include "lldb/API/SBTarget.h"
 #include <map>
+#include <type_traits>
 #include <vector>
 
 // In-house headers:
@@ -44,50 +45,6 @@ class CMICmnLLDBDebugSessionInfo
       public MI::ISingleton<CMICmnLLDBDebugSessionInfo> {
   friend class MI::ISingleton<CMICmnLLDBDebugSessionInfo>;
 
-  // Structs:
-public:
-  //++
-  //============================================================================
-  // Details: Break point information object. Used to easily pass information
-  // about
-  //          a break around and record break point information to be recalled
-  //          by
-  //          other commands or LLDB event handling functions.
-  //--
-  struct SBrkPtInfo {
-    SBrkPtInfo()
-        : m_id(0), m_bDisp(false), m_bEnabled(false), m_pc(0), m_nLine(0),
-          m_bHaveArgOptionThreadGrp(false), m_nTimes(0), m_bPending(false),
-          m_nIgnore(0), m_bCondition(false), m_bBrkPtThreadId(false),
-          m_nBrkPtThreadId(0) {}
-
-    MIuint m_id;              // LLDB break point ID.
-    CMIUtilString m_strType;  // Break point type.
-    bool m_bDisp;             // True = "del", false = "keep".
-    bool m_bEnabled;          // True = enabled, false = disabled break point.
-    lldb::addr_t m_pc;        // Address number.
-    CMIUtilString m_fnName;   // Function name.
-    CMIUtilString m_fileName; // File name text.
-    CMIUtilString m_path;     // Full file name and path text.
-    MIuint m_nLine;           // File line number.
-    bool m_bHaveArgOptionThreadGrp; // True = include MI field, false = do not
-                                    // include "thread-groups".
-    CMIUtilString m_strOptThrdGrp;  // Thread group number.
-    MIuint m_nTimes;                // The count of the breakpoint existence.
-    CMIUtilString m_strOrigLoc;     // The name of the break point.
-    bool m_bPending;  // True = the breakpoint has not been established yet,
-                      // false = location found
-    MIuint m_nIgnore; // The number of time the breakpoint is run over before it
-                      // is stopped on a hit
-    bool m_bCondition; // True = break point is conditional, use condition
-                       // expression, false = no condition
-    CMIUtilString m_strCondition; // Break point condition expression
-    bool m_bBrkPtThreadId; // True = break point is specified to work with a
-                           // specific thread, false = no specified thread given
-    MIuint
-        m_nBrkPtThreadId; // Restrict the breakpoint to the specified thread-id
-  };
-
   // Enumerations:
 public:
   //++ ===================================================================
@@ -99,6 +56,14 @@ public:
     eVariableType_Statics = (1u << 1),  // Statics.
     eVariableType_Locals = (1u << 2),   // Locals.
     eVariableType_Arguments = (1u << 3) // Arguments.
+  };
+
+  //++ ===================================================================
+  // Details: The type of stoppoint.
+  //--
+  enum StoppointType_e {
+    eStoppointType_Breakpoint,
+    eStoppointType_Watchpoint,
   };
 
   //++ ===================================================================
@@ -128,6 +93,54 @@ public:
     eFrameInfoFormat_NoArguments,
     eFrameInfoFormat_AllArguments,
     eFrameInfoFormat_AllArgumentsInSimpleForm
+  };
+
+  // Structs:
+public:
+  //++
+  //============================================================================
+  // Details: Stop point information object. Used to easily pass information
+  //          about a break around and record stop point information to be
+  //          recalled by other commands or LLDB event handling functions.
+  //--
+  struct SStopPtInfo {
+    SStopPtInfo()
+        : m_nLldbId(0), m_nMiId(0), m_bDisp(false), m_bEnabled(false),
+          m_addr(0), m_nLine(0), m_bHaveArgOptionThreadGrp(false), m_nTimes(0),
+          m_watchPtVariable(false), m_watchPtRead(false), m_watchPtWrite(false),
+          m_bPending(false), m_nIgnore(0), m_bCondition(false),
+          m_bBrkPtThreadId(false), m_nBrkPtThreadId(0) {}
+
+    MIuint m_nLldbId;         // LLDB break or watch point ID.
+    MIuint m_nMiId;           // Emulated GDB-MI break point ID.
+    StoppointType_e m_eType;  // Stop point type.
+    bool m_bDisp;             // True = "del", false = "keep".
+    bool m_bEnabled;          // True = enabled, false = disabled break point.
+    lldb::addr_t m_addr;      // Address number.
+    CMIUtilString m_fnName;   // Function name.
+    CMIUtilString m_fileName; // File name text.
+    CMIUtilString m_path;     // Full file name and path text.
+    MIuint m_nLine;           // File line number.
+    bool m_bHaveArgOptionThreadGrp; // True = include MI field, false = do not
+                                    // include "thread-groups".
+    CMIUtilString m_strOptThrdGrp;  // Thread group number.
+    MIuint m_nTimes;                // The count of the breakpoint existence.
+    CMIUtilString m_strOrigLoc;     // The name of the break point.
+    bool m_watchPtVariable;         // Whether the watchpoint is set on var.
+    CMIUtilString m_watchPtExpr;    // The expression of the watch point.
+    bool m_watchPtRead;             // Whether the wpt is triggered on read.
+    bool m_watchPtWrite;            // Whether the wpt is triggered on write.
+    bool m_bPending;  // True = the breakpoint has not been established yet,
+                      // false = location found
+    MIuint m_nIgnore; // The number of time the breakpoint is run over before it
+                      // is stopped on a hit
+    bool m_bCondition; // True = break point is conditional, use condition
+                       // expression, false = no condition
+    CMIUtilString m_strCondition; // Break point condition expression
+    bool m_bBrkPtThreadId; // True = break point is specified to work with a
+                           // specific thread, false = no specified thread given
+    MIuint
+        m_nBrkPtThreadId; // Restrict the breakpoint to the specified thread-id
   };
 
   // Typedefs:
@@ -167,16 +180,24 @@ public:
                                   CMICmnMIValueList &vwrMiValueList,
                                   const MIuint vnMaxDepth = 10,
                                   const bool vbMarkArgs = false);
-  void MIResponseFormBrkPtFrameInfo(const SBrkPtInfo &vrBrkPtInfo,
-                                    CMICmnMIValueTuple &vwrMiValueTuple);
-  bool MIResponseFormBrkPtInfo(const SBrkPtInfo &vrBrkPtInfo,
+  void MIResponseFormStopPtFrameInfo(const SStopPtInfo &vrStopPtInfo,
+                                     CMICmnMIValueTuple &vwrMiValueTuple);
+  bool MIResponseFormBrkPtInfo(const SStopPtInfo &vrStopPtInfo,
                                CMICmnMIValueTuple &vwrMiValueTuple);
-  bool GetBrkPtInfo(const lldb::SBBreakpoint &vBrkPt,
-                    SBrkPtInfo &vrwBrkPtInfo) const;
-  bool RecordBrkPtInfo(const MIuint vnBrkPtId, const SBrkPtInfo &vrBrkPtInfo);
-  bool RecordBrkPtInfoGet(const MIuint vnBrkPtId,
-                          SBrkPtInfo &vrwBrkPtInfo) const;
-  bool RecordBrkPtInfoDelete(const MIuint vnBrkPtId);
+  void MIResponseFormWatchPtInfo(const SStopPtInfo &vrStopPtInfo,
+                                 CMICmnMIValueResult &vwrMiValueResult);
+  template <class T, class = std::enable_if_t<
+                         std::is_same<T, lldb::SBBreakpoint>::value ||
+                         std::is_same<T, lldb::SBWatchpoint>::value>>
+  bool GetStopPtInfo(const T &vrStopPt, SStopPtInfo &vrwStopPtInfo);
+  bool RecordStopPtInfo(const SStopPtInfo &vrStopPtInfo);
+  bool RecordStopPtInfoGet(const MIuint vnMiStopPtId,
+                           SStopPtInfo &vrwStopPtInfo) const;
+  bool RecordStopPtInfoDelete(const MIuint vnMiStopPtId);
+  MIuint GetOrCreateMiStopPtId(const MIuint vnLldbStopPtId,
+                               const StoppointType_e veStopPtType);
+  bool RemoveLldbToMiStopPtIdMapping(const MIuint vnLldbStopPtId,
+                                     const StoppointType_e veStopPtType);
   CMIUtilThreadMutex &GetSessionMutex() { return m_sessionMutex; }
   lldb::SBDebugger &GetDebugger() const;
   lldb::SBListener &GetListener() const;
@@ -205,8 +226,10 @@ public:
   // Typedefs:
 private:
   typedef std::vector<CMICmnLLDBDebugSessionInfoVarObj> VecVarObj_t;
-  typedef std::map<MIuint, SBrkPtInfo> MapBrkPtIdToBrkPtInfo_t;
-  typedef std::pair<MIuint, SBrkPtInfo> MapPairBrkPtIdToBrkPtInfo_t;
+  typedef std::map<MIuint, SStopPtInfo> MapMiStopPtIdToStopPtInfo_t;
+  typedef std::pair<MIuint, SStopPtInfo> MapPairMiStopPtIdToStopPtInfo_t;
+  typedef std::map<std::pair<MIuint, StoppointType_e>, MIuint>
+      MapLldbStopPtIdToMiStopPtId_t;
 
   // Methods:
 private:
@@ -240,8 +263,11 @@ private:
                                               // data available across all
                                               // commands
   VecVarObj_t m_vecVarObj; // Vector of session variable objects
-  MapBrkPtIdToBrkPtInfo_t m_mapBrkPtIdToBrkPtInfo;
+  MapMiStopPtIdToStopPtInfo_t m_mapMiStopPtIdToStopPtInfo;
   CMIUtilThreadMutex m_sessionMutex;
+  MapLldbStopPtIdToMiStopPtId_t m_mapLldbStopPtIdToMiStopPtId;
+  MIuint m_nNextMiStopPtId;
+  std::mutex m_miStopPtIdsMutex;
 
   bool m_bCreateTty; // Created inferiors should launch with new TTYs
 };

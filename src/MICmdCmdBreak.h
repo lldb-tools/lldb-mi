@@ -32,6 +32,7 @@
 
 // In-house headers:
 #include "MICmdBase.h"
+#include "MICmnLLDBDebugSessionInfo.h"
 
 //++
 //============================================================================
@@ -155,7 +156,7 @@ public:
 private:
   const CMIUtilString m_constStrArgNamedBrkPt;
   bool m_bBrkPtDisabledOk;
-  MIuint m_nBrkPtId;
+  MIuint m_nMiStopPtId;
 };
 
 //++
@@ -186,7 +187,7 @@ public:
 private:
   const CMIUtilString m_constStrArgNamedBrkPt;
   bool m_bBrkPtEnabledOk;
-  MIuint m_nBrkPtId;
+  MIuint m_nMiStopPtId;
 };
 
 //++
@@ -213,11 +214,30 @@ public:
   // From CMICmnBase
   /* dtor */ ~CMICmdCmdBreakAfter() override;
 
+  // Methods:
+private:
+  bool UpdateStopPtInfo(CMICmnLLDBDebugSessionInfo &rSessionInfo);
+  template <class T>
+  bool SetIgnoreCount(CMICmnLLDBDebugSessionInfo &rSessionInfo, T &vrStopPt) {
+    if (!vrStopPt.IsValid()) {
+      const CMIUtilString strBrkPtId(CMIUtilString::Format(
+          "%" PRIu64, static_cast<uint64_t>(m_nMiStopPtId)));
+      SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_STOPPT_INVALID),
+                                     m_cmdData.strMiCmd.c_str(),
+                                     strBrkPtId.c_str()));
+      return MIstatus::failure;
+    }
+
+    vrStopPt.SetIgnoreCount(m_nBrkPtCount);
+
+    return UpdateStopPtInfo(rSessionInfo);
+  }
+
   // Attributes:
 private:
   const CMIUtilString m_constStrArgNamedNumber;
   const CMIUtilString m_constStrArgNamedCount;
-  MIuint m_nBrkPtId;
+  MIuint m_nMiStopPtId;
   MIuint m_nBrkPtCount;
 };
 
@@ -248,6 +268,22 @@ public:
   // Methods:
 private:
   CMIUtilString GetRestOfExpressionNotSurroundedInQuotes();
+  bool UpdateStopPtInfo(CMICmnLLDBDebugSessionInfo &rSessionInfo);
+  template <class T>
+  bool SetCondition(CMICmnLLDBDebugSessionInfo &rSessionInfo, T &vrStopPt) {
+    if (!vrStopPt.IsValid()) {
+      const CMIUtilString strBrkPtId(CMIUtilString::Format(
+          "%" PRIu64, static_cast<uint64_t>(m_nMiStopPtId)));
+      SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_STOPPT_INVALID),
+                                     m_cmdData.strMiCmd.c_str(),
+                                     strBrkPtId.c_str()));
+      return MIstatus::failure;
+    }
+
+    vrStopPt.SetCondition(m_strBrkPtExpr.c_str());
+
+    return UpdateStopPtInfo(rSessionInfo);
+  }
 
   // Attributes:
 private:
@@ -257,6 +293,6 @@ private:
                                                       // spec, we need to handle
                                                       // expressions not
                                                       // surrounded by quotes
-  MIuint m_nBrkPtId;
+  MIuint m_nMiStopPtId;
   CMIUtilString m_strBrkPtExpr;
 };

@@ -8,6 +8,7 @@
 
 // Third party headers:
 #include "lldb/API/SBThread.h"
+#include <cassert>
 #include <inttypes.h>
 #ifdef _WIN32
 #include <io.h>
@@ -51,7 +52,7 @@ CMICmnLLDBDebugSessionInfo::CMICmnLLDBDebugSessionInfo()
       m_constStrPrintCharArrayAsString("Print CharArrayAsString"),
       m_constStrPrintExpandAggregates("Print ExpandAggregates"),
       m_constStrPrintAggregateFieldNames("Print AggregateFieldNames"),
-      m_bCreateTty(false) {}
+      m_bCreateTty(false), m_nNextMiStopPtId(1UL) {}
 
 //++
 // Details: CMICmnLLDBDebugSessionInfo destructor.
@@ -128,45 +129,43 @@ bool CMICmnLLDBDebugSessionInfo::Shutdown() {
 void CMICmnLLDBDebugSessionInfo::SharedDataDestroy() {
   m_mapIdToSessionData.Clear();
   m_vecVarObj.clear();
-  m_mapBrkPtIdToBrkPtInfo.clear();
+  m_mapMiStopPtIdToStopPtInfo.clear();
+  m_mapLldbStopPtIdToMiStopPtId.clear();
 }
 
 //++
-// Details: Record information about a LLDB break point so that is can be
-// recalled in other
-//          commands or LLDB event handling functions.
+// Details: Record information about a LLDB stop point so that is can
+//          be recalled in other commands or LLDB event handling functions.
 // Type:    Method.
-// Args:    vBrkPtId        - (R) LLDB break point ID.
-//          vrBrkPtInfo     - (R) Break point information object.
+// Args:    vrStopPtInfo     - (R) Break point information object.
 // Return:  MIstatus::success - Functional succeeded.
 //          MIstatus::failure - Functional failed.
 // Throws:  None.
 //--
-bool CMICmnLLDBDebugSessionInfo::RecordBrkPtInfo(
-    const MIuint vnBrkPtId, const SBrkPtInfo &vrBrkPtInfo) {
-  MapPairBrkPtIdToBrkPtInfo_t pr(vnBrkPtId, vrBrkPtInfo);
-  m_mapBrkPtIdToBrkPtInfo.insert(pr);
+bool CMICmnLLDBDebugSessionInfo::RecordStopPtInfo(
+    const SStopPtInfo &vrStopPtInfo) {
+  MapPairMiStopPtIdToStopPtInfo_t pr(vrStopPtInfo.m_nMiId, vrStopPtInfo);
+  m_mapMiStopPtIdToStopPtInfo.insert(pr);
 
   return MIstatus::success;
 }
 
 //++
-// Details: Retrieve information about a LLDB break point previous recorded
-// either by
-//          commands or LLDB event handling functions.
+// Details: Retrieve information about a LLDB stop point previous
+//          recorded either by commands or LLDB event handling functions.
 // Type:    Method.
-// Args:    vBrkPtId        - (R) LLDB break point ID.
-//          vrwBrkPtInfo    - (W) Break point information object.
+// Args:    vnMiStopPtId  - (R) MI stoppoint ID.
+//          vrwStopPtInfo - (W) Stoppoint information object.
 // Return:  MIstatus::success - Functional succeeded.
 //          MIstatus::failure - Functional failed.
 // Throws:  None.
 //--
-bool CMICmnLLDBDebugSessionInfo::RecordBrkPtInfoGet(
-    const MIuint vnBrkPtId, SBrkPtInfo &vrwBrkPtInfo) const {
-  const MapBrkPtIdToBrkPtInfo_t::const_iterator it =
-      m_mapBrkPtIdToBrkPtInfo.find(vnBrkPtId);
-  if (it != m_mapBrkPtIdToBrkPtInfo.end()) {
-    vrwBrkPtInfo = (*it).second;
+bool CMICmnLLDBDebugSessionInfo::RecordStopPtInfoGet(
+    const MIuint vnMiStopPtId, SStopPtInfo &vrwStopPtInfo) const {
+  const MapMiStopPtIdToStopPtInfo_t::const_iterator it =
+      m_mapMiStopPtIdToStopPtInfo.find(vnMiStopPtId);
+  if (it != m_mapMiStopPtIdToStopPtInfo.end()) {
+    vrwStopPtInfo = (*it).second;
     return MIstatus::success;
   }
 
@@ -174,24 +173,70 @@ bool CMICmnLLDBDebugSessionInfo::RecordBrkPtInfoGet(
 }
 
 //++
-// Details: Delete information about a specific LLDB break point object. This
-// function
-//          should be called when a LLDB break point is deleted.
+// Details: Delete information about a specific LLDB stop point
+//          object. This function should be called when a LLDB stop
+//          point is deleted.
 // Type:    Method.
-// Args:    vBrkPtId        - (R) LLDB break point ID.
+// Args:    vnMiStopPtId - (R) MI stoppoint ID.
 // Return:  MIstatus::success - Functional succeeded.
 //          MIstatus::failure - Functional failed.
 // Throws:  None.
 //--
-bool CMICmnLLDBDebugSessionInfo::RecordBrkPtInfoDelete(const MIuint vnBrkPtId) {
-  const MapBrkPtIdToBrkPtInfo_t::const_iterator it =
-      m_mapBrkPtIdToBrkPtInfo.find(vnBrkPtId);
-  if (it != m_mapBrkPtIdToBrkPtInfo.end()) {
-    m_mapBrkPtIdToBrkPtInfo.erase(it);
+bool CMICmnLLDBDebugSessionInfo::RecordStopPtInfoDelete(
+    const MIuint vnMiStopPtId) {
+  const MapMiStopPtIdToStopPtInfo_t::const_iterator it =
+      m_mapMiStopPtIdToStopPtInfo.find(vnMiStopPtId);
+  if (it != m_mapMiStopPtIdToStopPtInfo.end()) {
+    m_mapMiStopPtIdToStopPtInfo.erase(it);
     return MIstatus::success;
   }
 
   return MIstatus::failure;
+}
+
+//++
+// Details: Get an existing MI stoppoint ID for the given LLDB break
+//          or watch point ID and type or create new.
+// Type:    Method.
+// Args:    vnLldbStopPtId       - (R) LLDB stop point ID.
+//          veStopPtType         - (R) The type of the stoppoint.
+// Return:  An MI stoppoint ID corresponding to the given break or
+//          watchpoint ID.
+// Throws:  None.
+//--
+MIuint CMICmnLLDBDebugSessionInfo::GetOrCreateMiStopPtId(
+    const MIuint vnLldbStopPtId, const StoppointType_e veStopPtType) {
+  auto key = std::make_pair(vnLldbStopPtId, veStopPtType);
+
+  std::lock_guard<std::mutex> miStopPtIdsLock(m_miStopPtIdsMutex);
+  auto found = m_mapLldbStopPtIdToMiStopPtId.find(key);
+  if (found != m_mapLldbStopPtIdToMiStopPtId.end())
+    return found->second;
+
+  auto nNewId = m_nNextMiStopPtId++;
+  auto emplacementStatus = m_mapLldbStopPtIdToMiStopPtId.emplace(key, nNewId);
+  assert(emplacementStatus.second);
+
+  return nNewId;
+}
+
+//++
+// Details: Remove the stored connection between LLDB stoppoint ID
+//          and MI stoppoint ID.
+// Type:    Method.
+// Args:    vnLldbStopPtId - (R) LLDB stop point ID.
+//          veStopPtType   - (R) The type of the stoppoint.
+// Return:  MIstatus::success - Functional succeeded.
+//          MIstatus::failure - Functional failed.
+// Throws:  None.
+//--
+bool CMICmnLLDBDebugSessionInfo::RemoveLldbToMiStopPtIdMapping(
+    const MIuint vnLldbStopPtId, const StoppointType_e veStopPtType) {
+  auto key = std::make_pair(vnLldbStopPtId, veStopPtType);
+
+  std::lock_guard<std::mutex> miStopPtIdsLock(m_miStopPtIdsMutex);
+  auto erased = m_mapLldbStopPtIdToMiStopPtId.erase(key);
+  return erased == 1 ? MIstatus::success : MIstatus::failure;
 }
 
 //++
@@ -659,30 +704,31 @@ bool CMICmnLLDBDebugSessionInfo::GetFrameInfo(
 // the
 //          tuple type object past in.
 // Type:    Method.
-// Args:    vrBrkPtInfo     - (R) Break point information object.
+// Args:    vrStopPtInfo     - (R) Break point information object.
 //          vwrMIValueTuple - (W) MI value tuple object.
 // Return:  None.
 // Throws:  None.
 //--
-void CMICmnLLDBDebugSessionInfo::MIResponseFormBrkPtFrameInfo(
-    const SBrkPtInfo &vrBrkPtInfo, CMICmnMIValueTuple &vwrMiValueTuple) {
+void CMICmnLLDBDebugSessionInfo::MIResponseFormStopPtFrameInfo(
+    const SStopPtInfo &vrStopPtInfo, CMICmnMIValueTuple &vwrMiValueTuple) {
   const CMIUtilString strAddr(
-      CMIUtilString::Format("0x%016" PRIx64, vrBrkPtInfo.m_pc));
+      CMIUtilString::Format("0x%016" PRIx64, vrStopPtInfo.m_addr));
   const CMICmnMIValueConst miValueConst2(strAddr);
   const CMICmnMIValueResult miValueResult2("addr", miValueConst2);
   vwrMiValueTuple.Add(miValueResult2);
-  const CMICmnMIValueConst miValueConst3(vrBrkPtInfo.m_fnName);
+  const CMICmnMIValueConst miValueConst3(vrStopPtInfo.m_fnName);
   const CMICmnMIValueResult miValueResult3("func", miValueConst3);
   vwrMiValueTuple.Add(miValueResult3);
-  const CMICmnMIValueConst miValueConst5(vrBrkPtInfo.m_fileName);
+  const CMICmnMIValueConst miValueConst5(vrStopPtInfo.m_fileName);
   const CMICmnMIValueResult miValueResult5("file", miValueConst5);
   vwrMiValueTuple.Add(miValueResult5);
   const CMIUtilString strN5 = CMIUtilString::Format(
-      "%s/%s", vrBrkPtInfo.m_path.c_str(), vrBrkPtInfo.m_fileName.c_str());
+      "%s/%s", vrStopPtInfo.m_path.c_str(), vrStopPtInfo.m_fileName.c_str());
   const CMICmnMIValueConst miValueConst6(strN5);
   const CMICmnMIValueResult miValueResult6("fullname", miValueConst6);
   vwrMiValueTuple.Add(miValueResult6);
-  const CMIUtilString strLine(CMIUtilString::Format("%d", vrBrkPtInfo.m_nLine));
+  const CMIUtilString strLine(
+      CMIUtilString::Format("%d", vrStopPtInfo.m_nLine));
   const CMICmnMIValueConst miValueConst7(strLine);
   const CMICmnMIValueResult miValueResult7("line", miValueConst7);
   vwrMiValueTuple.Add(miValueResult7);
@@ -693,84 +739,95 @@ void CMICmnLLDBDebugSessionInfo::MIResponseFormBrkPtFrameInfo(
 // the
 //          tuple type object past in.
 // Type:    Method.
-// Args:    vrBrkPtInfo     - (R) Break point information object.
+// Args:    vrStopPtInfo     - (R) Break point information object.
 //          vwrMIValueTuple - (W) MI value tuple object.
 // Return:  MIstatus::success - Functional succeeded.
 //          MIstatus::failure - Functional failed.
 // Throws:  None.
 //--
 bool CMICmnLLDBDebugSessionInfo::MIResponseFormBrkPtInfo(
-    const SBrkPtInfo &vrBrkPtInfo, CMICmnMIValueTuple &vwrMiValueTuple) {
+    const SStopPtInfo &vrStopPtInfo, CMICmnMIValueTuple &vwrMiValueTuple) {
   // MI print
   // "=breakpoint-modified,bkpt={number=\"%d\",type=\"breakpoint\",disp=\"%s\",enabled=\"%c\",addr=\"0x%016"
   // PRIx64 "\",
   // func=\"%s\",file=\"%s\",fullname=\"%s/%s\",line=\"%d\",times=\"%d\",original-location=\"%s\"}"
 
   // "number="
-  const CMICmnMIValueConst miValueConst(
-      CMIUtilString::Format("%d", vrBrkPtInfo.m_id));
+
+  const CMICmnMIValueConst miValueConst(CMIUtilString::Format(
+      "%" PRIu64, static_cast<uint64_t>(vrStopPtInfo.m_nMiId)));
   const CMICmnMIValueResult miValueResult("number", miValueConst);
   CMICmnMIValueTuple miValueTuple(miValueResult);
   // "type="
-  const CMICmnMIValueConst miValueConst2(vrBrkPtInfo.m_strType);
+  const CMICmnMIValueConst miValueConst2(
+      vrStopPtInfo.m_eType == eStoppointType_Breakpoint ? "breakpoint"
+                                                        : "watchpoint");
   const CMICmnMIValueResult miValueResult2("type", miValueConst2);
   miValueTuple.Add(miValueResult2);
   // "disp="
-  const CMICmnMIValueConst miValueConst3(vrBrkPtInfo.m_bDisp ? "del" : "keep");
+  const CMICmnMIValueConst miValueConst3(vrStopPtInfo.m_bDisp ? "del" : "keep");
   const CMICmnMIValueResult miValueResult3("disp", miValueConst3);
   miValueTuple.Add(miValueResult3);
   // "enabled="
-  const CMICmnMIValueConst miValueConst4(vrBrkPtInfo.m_bEnabled ? "y" : "n");
+  const CMICmnMIValueConst miValueConst4(vrStopPtInfo.m_bEnabled ? "y" : "n");
   const CMICmnMIValueResult miValueResult4("enabled", miValueConst4);
   miValueTuple.Add(miValueResult4);
-  // "addr="
-  // "func="
-  // "file="
-  // "fullname="
-  // "line="
-  MIResponseFormBrkPtFrameInfo(vrBrkPtInfo, miValueTuple);
   // "pending="
-  if (vrBrkPtInfo.m_bPending) {
-    const CMICmnMIValueConst miValueConst(vrBrkPtInfo.m_strOrigLoc);
+  if (vrStopPtInfo.m_bPending) {
+    const CMICmnMIValueConst miValueConst(vrStopPtInfo.m_strOrigLoc);
     const CMICmnMIValueList miValueList(miValueConst);
     const CMICmnMIValueResult miValueResult("pending", miValueList);
     miValueTuple.Add(miValueResult);
   }
-  if (vrBrkPtInfo.m_bHaveArgOptionThreadGrp) {
-    const CMICmnMIValueConst miValueConst(vrBrkPtInfo.m_strOptThrdGrp);
+  if (vrStopPtInfo.m_bHaveArgOptionThreadGrp) {
+    const CMICmnMIValueConst miValueConst(vrStopPtInfo.m_strOptThrdGrp);
     const CMICmnMIValueList miValueList(miValueConst);
     const CMICmnMIValueResult miValueResult("thread-groups", miValueList);
     miValueTuple.Add(miValueResult);
   }
   // "times="
   const CMICmnMIValueConst miValueConstB(
-      CMIUtilString::Format("%d", vrBrkPtInfo.m_nTimes));
+      CMIUtilString::Format("%d", vrStopPtInfo.m_nTimes));
   const CMICmnMIValueResult miValueResultB("times", miValueConstB);
   miValueTuple.Add(miValueResultB);
   // "thread="
-  if (vrBrkPtInfo.m_bBrkPtThreadId) {
+  if (vrStopPtInfo.m_bBrkPtThreadId) {
     const CMICmnMIValueConst miValueConst(
-        CMIUtilString::Format("%d", vrBrkPtInfo.m_nBrkPtThreadId));
+        CMIUtilString::Format("%d", vrStopPtInfo.m_nBrkPtThreadId));
     const CMICmnMIValueResult miValueResult("thread", miValueConst);
     miValueTuple.Add(miValueResult);
   }
   // "cond="
-  if (vrBrkPtInfo.m_bCondition) {
-    const CMICmnMIValueConst miValueConst(vrBrkPtInfo.m_strCondition);
+  if (vrStopPtInfo.m_bCondition) {
+    const CMICmnMIValueConst miValueConst(vrStopPtInfo.m_strCondition);
     const CMICmnMIValueResult miValueResult("cond", miValueConst);
     miValueTuple.Add(miValueResult);
   }
   // "ignore="
-  if (vrBrkPtInfo.m_nIgnore != 0) {
+  if (vrStopPtInfo.m_nIgnore != 0) {
     const CMICmnMIValueConst miValueConst(
-        CMIUtilString::Format("%d", vrBrkPtInfo.m_nIgnore));
+        CMIUtilString::Format("%d", vrStopPtInfo.m_nIgnore));
     const CMICmnMIValueResult miValueResult("ignore", miValueConst);
     miValueTuple.Add(miValueResult);
   }
-  // "original-location="
-  const CMICmnMIValueConst miValueConstC(vrBrkPtInfo.m_strOrigLoc);
-  const CMICmnMIValueResult miValueResultC("original-location", miValueConstC);
-  miValueTuple.Add(miValueResultC);
+  if (vrStopPtInfo.m_eType == eStoppointType_Breakpoint) {
+    // "addr="
+    // "func="
+    // "file="
+    // "fullname="
+    // "line="
+    MIResponseFormStopPtFrameInfo(vrStopPtInfo, miValueTuple);
+    // "original-location="
+    const CMICmnMIValueConst miValueConstC(vrStopPtInfo.m_strOrigLoc);
+    const CMICmnMIValueResult miValueResultC("original-location",
+                                             miValueConstC);
+    miValueTuple.Add(miValueResultC);
+  } else {
+    // "what="
+    const CMICmnMIValueConst miValueConstWhat(vrStopPtInfo.m_watchPtExpr);
+    const CMICmnMIValueResult miValueResultWhat("what", miValueConstWhat);
+    miValueTuple.Add(miValueResultWhat);
+  }
 
   vwrMiValueTuple = miValueTuple;
 
@@ -778,24 +835,65 @@ bool CMICmnLLDBDebugSessionInfo::MIResponseFormBrkPtInfo(
 }
 
 //++
-// Details: Retrieve breakpoint information and write into the given breakpoint
-// information
-//          object. Note not all possible information is retrieved and so the
-//          information
-//          object may need to be filled in with more information after calling
-//          this
-//          function. Mainly breakpoint location information of information that
-//          is
-//          unlikely to change.
+// Details: Form MI wpt={number=...,exp="..."} response by the given
+//          breakpoint info object.
 // Type:    Method.
-// Args:    vBrkPt      - (R) LLDB break point object.
-//          vrBrkPtInfo - (W) Break point information object.
+// Args:    vrStopPtInfo      - (R) Break (and watch) point information object.
+//          vwrMiValueResult - (W) Where to store wpt={} representation.
 // Return:  MIstatus::success - Functional succeeded.
 //          MIstatus::failure - Functional failed.
 // Throws:  None.
 //--
-bool CMICmnLLDBDebugSessionInfo::GetBrkPtInfo(const lldb::SBBreakpoint &vBrkPt,
-                                              SBrkPtInfo &vrwBrkPtInfo) const {
+void CMICmnLLDBDebugSessionInfo::MIResponseFormWatchPtInfo(
+    const SStopPtInfo &vrStopPtInfo, CMICmnMIValueResult &vwrMiValueResult) {
+  // "number="
+  const CMICmnMIValueConst miValueConstNumber(CMIUtilString::Format(
+      "%" PRIu64, static_cast<uint64_t>(vrStopPtInfo.m_nMiId)));
+  const CMICmnMIValueResult miValueResultNumber("number", miValueConstNumber);
+  CMICmnMIValueTuple miValueTuple(miValueResultNumber);
+
+  // "exp="
+  const CMICmnMIValueConst miValueConstExp(vrStopPtInfo.m_watchPtExpr);
+  const CMICmnMIValueResult miValueResultExp("exp", miValueConstExp);
+  miValueTuple.Add(miValueResultExp);
+
+  // "wpt="
+  vwrMiValueResult = CMICmnMIValueResult("wpt", miValueTuple);
+}
+
+template <class T>
+static lldb::SBAddress GetBreakOrWatchPointAddress(lldb::SBTarget &vrTarget,
+                                                   T &vrStopPt);
+
+template <>
+lldb::SBAddress GetBreakOrWatchPointAddress(lldb::SBTarget &vrTarget,
+                                            lldb::SBBreakpoint &vrStopPt) {
+  lldb::SBBreakpointLocation brkPtLoc = vrStopPt.GetLocationAtIndex(0);
+  return brkPtLoc.GetAddress();
+}
+
+template <>
+lldb::SBAddress GetBreakOrWatchPointAddress(lldb::SBTarget &vrTarget,
+                                            lldb::SBWatchpoint &vrStopPt) {
+  return lldb::SBAddress(vrStopPt.GetWatchAddress(), vrTarget);
+}
+
+//++
+// Details: Retrieve breakpoint information and write into the given breakpoint
+//          information object. Note not all possible information is retrieved
+//          and so the information object may need to be filled in with more
+//          information after calling this function. Mainly breakpoint location
+//          information of information that is unlikely to change.
+// Type:    Method.
+// Args:    vBrkPt       - (R) LLDB break point object.
+//          vrwStopPtInfo - (W) Break point information object.
+// Return:  MIstatus::success - Functional succeeded.
+//          MIstatus::failure - Functional failed.
+// Throws:  None.
+//--
+template <>
+bool CMICmnLLDBDebugSessionInfo::GetStopPtInfo(const lldb::SBBreakpoint &vBrkPt,
+                                               SStopPtInfo &vrwStopPtInfo) {
   lldb::SBBreakpoint &rBrkPt = const_cast<lldb::SBBreakpoint &>(vBrkPt);
   lldb::SBBreakpointLocation brkPtLoc = rBrkPt.GetLocationAtIndex(0);
   lldb::SBAddress brkPtAddr = brkPtLoc.GetAddress();
@@ -827,14 +925,49 @@ bool CMICmnLLDBDebugSessionInfo::GetBrkPtInfo(const lldb::SBBreakpoint &vBrkPt,
       nLine = rLnEntry.GetLine();
   }
 
-  vrwBrkPtInfo.m_id = vBrkPt.GetID();
-  vrwBrkPtInfo.m_strType = "breakpoint";
-  vrwBrkPtInfo.m_pc = nAddr;
-  vrwBrkPtInfo.m_fnName = pFn;
-  vrwBrkPtInfo.m_fileName = pFile;
-  vrwBrkPtInfo.m_path = pFilePath;
-  vrwBrkPtInfo.m_nLine = nLine;
-  vrwBrkPtInfo.m_nTimes = vBrkPt.GetHitCount();
+  vrwStopPtInfo.m_nLldbId = vBrkPt.GetID();
+  vrwStopPtInfo.m_eType = eStoppointType_Breakpoint;
+  vrwStopPtInfo.m_nMiId =
+      GetOrCreateMiStopPtId(vrwStopPtInfo.m_nLldbId, vrwStopPtInfo.m_eType);
+  vrwStopPtInfo.m_addr = nAddr;
+  vrwStopPtInfo.m_fnName = pFn;
+  vrwStopPtInfo.m_fileName = pFile;
+  vrwStopPtInfo.m_path = pFilePath;
+  vrwStopPtInfo.m_nLine = nLine;
+  vrwStopPtInfo.m_nTimes = vBrkPt.GetHitCount();
+
+  return MIstatus::success;
+}
+
+//++
+// Details: Retrieve watchpoint information and write into the given breakpoint
+//          information object. Note not all possible information is retrieved
+//          and so the information object may need to be filled in with more
+//          information after calling this function. Mainly breakpoint location
+//          information of information that is unlikely to change.
+// Type:    Method.
+// Args:    vWatchPt     - (R) LLDB watch point object.
+//          vrwStopPtInfo - (W) Break point information object.
+// Return:  MIstatus::success - Functional succeeded.
+//          MIstatus::failure - Functional failed.
+// Throws:  None.
+//--
+template <>
+bool CMICmnLLDBDebugSessionInfo::GetStopPtInfo(
+    const lldb::SBWatchpoint &vWatchPt, SStopPtInfo &vrwStopPtInfo) {
+  const char *pUnkwn = "??";
+
+  auto &rWatchPt = const_cast<lldb::SBWatchpoint &>(vWatchPt);
+  vrwStopPtInfo.m_nLldbId = rWatchPt.GetID();
+  vrwStopPtInfo.m_eType = eStoppointType_Watchpoint;
+  vrwStopPtInfo.m_nMiId =
+      GetOrCreateMiStopPtId(vrwStopPtInfo.m_nLldbId, vrwStopPtInfo.m_eType);
+  vrwStopPtInfo.m_addr = rWatchPt.GetWatchAddress();
+  vrwStopPtInfo.m_fnName = pUnkwn;
+  vrwStopPtInfo.m_fileName = pUnkwn;
+  vrwStopPtInfo.m_path = pUnkwn;
+  vrwStopPtInfo.m_nLine = 0UL;
+  vrwStopPtInfo.m_nTimes = rWatchPt.GetHitCount();
 
   return MIstatus::success;
 }
