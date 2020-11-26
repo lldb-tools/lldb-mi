@@ -8,6 +8,9 @@
 
 #pragma once
 
+// Third party headers:
+#include <type_traits>
+
 // In-house headers:
 #include "MICmnBase.h"
 #include "MICmnMIValueList.h"
@@ -53,9 +56,18 @@ private:
   bool HandleEventSBBreakPoint(const lldb::SBEvent &vEvent);
   bool HandleEventSBWatchpoint(const lldb::SBEvent &vEvent);
   bool HandleEventSBBreakpointLocationsAdded(const lldb::SBEvent &vEvent);
-  template <class T> bool HandleEventStoppointCmn(T &vrStopPt);
-  template <class T> bool HandleEventStoppointAdded(T &vrStopPt);
-  template <class T> bool RemoveStoppointInfo(T &vrStopPt);
+  template <class T, class = std::enable_if_t<
+                         std::is_same<T, lldb::SBBreakpoint>::value ||
+                         std::is_same<T, lldb::SBWatchpoint>::value>>
+  bool HandleEventStoppointCmn(T &vrStopPt);
+  template <class T, class = std::enable_if_t<
+                         std::is_same<T, lldb::SBBreakpoint>::value ||
+                         std::is_same<T, lldb::SBWatchpoint>::value>>
+  bool HandleEventStoppointAdded(T &vrStopPt);
+  template <class T, class = std::enable_if_t<
+                         std::is_same<T, lldb::SBBreakpoint>::value ||
+                         std::is_same<T, lldb::SBWatchpoint>::value>>
+  bool RemoveStoppointInfo(T &vrStopPt);
   bool HandleEventSBProcess(const lldb::SBEvent &vEvent);
   bool HandleEventSBTarget(const lldb::SBEvent &vEvent);
   bool HandleEventSBThread(const lldb::SBEvent &vEvent);
@@ -69,6 +81,7 @@ private:
                                       bool &vwrbShouldBrk);
   bool HandleProcessEventStopReasonTrace();
   bool HandleProcessEventStopReasonBreakpoint();
+  bool HandleProcessEventStopReasonWatchpoint();
   bool HandleProcessEventStopSignal(const lldb::SBEvent &vrEvent);
   bool HandleProcessEventStopException();
   bool HandleProcessEventStateSuspended(const lldb::SBEvent &vEvent);
@@ -84,6 +97,7 @@ private:
   MiOutOfBandRecordToStdout(const CMICmnMIOutOfBandRecord &vrMiResultRecord);
   bool MiStoppedAtBreakPoint(const MIuint64 vBrkPtId,
                              const lldb::SBBreakpoint &vBrkPt);
+  bool MiStoppedAtWatchpoint(lldb::SBWatchpoint &vrWatchPt);
   bool TextToStdout(const CMIUtilString &vrTxt);
   bool TextToStderr(const CMIUtilString &vrTxt);
   bool UpdateSelectedThread();
