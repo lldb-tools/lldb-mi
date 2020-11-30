@@ -64,12 +64,12 @@ typedef void (*sighandler_t)(int);
 
 // CODETAG_IOR_SIGNALS
 // signal.h
-#define SIGQUIT 3   // Terminal quit signal
-#define SIGKILL 9   // Kill (cannot be caught or ignored)
-#define SIGPIPE 13  // Write on a pipe with no one to read it
-#define SIGCONT 18  // Continue executing, if stopped.
-#define SIGTSTP 20  // Terminal stop signal
-#define SIGSTOP 23  // Stop executing (cannot be caught or ignored)
+#define SIGQUIT 3 // Terminal quit signal
+#define SIGKILL 9 // Kill (cannot be caught or ignored)
+#define SIGPIPE 13 // Write on a pipe with no one to read it
+#define SIGCONT 18 // Continue executing, if stopped.
+#define SIGTSTP 20 // Terminal stop signal
+#define SIGSTOP 23 // Stop executing (cannot be caught or ignored)
 #define SIGWINCH 28 // (== SIGVTALRM)
 
 #else
