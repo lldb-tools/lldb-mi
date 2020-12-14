@@ -59,15 +59,15 @@ private:
   template <class T, class = std::enable_if_t<
                          std::is_same<T, lldb::SBBreakpoint>::value ||
                          std::is_same<T, lldb::SBWatchpoint>::value>>
-  bool HandleEventStoppointCmn(T &vrStopPt);
+  bool HandleEventStoppointCmn(T &vrStoppoint);
   template <class T, class = std::enable_if_t<
                          std::is_same<T, lldb::SBBreakpoint>::value ||
                          std::is_same<T, lldb::SBWatchpoint>::value>>
-  bool HandleEventStoppointAdded(T &vrStopPt);
+  bool HandleEventStoppointAdded(T &vrStoppoint);
   template <class T, class = std::enable_if_t<
                          std::is_same<T, lldb::SBBreakpoint>::value ||
                          std::is_same<T, lldb::SBWatchpoint>::value>>
-  bool RemoveStoppointInfo(T &vrStopPt);
+  bool RemoveStoppointInfo(T &vrStoppoint);
   bool HandleEventSBProcess(const lldb::SBEvent &vEvent);
   bool HandleEventSBTarget(const lldb::SBEvent &vEvent);
   bool HandleEventSBThread(const lldb::SBEvent &vEvent);
@@ -95,9 +95,9 @@ private:
   bool MiResultRecordToStdout(const CMICmnMIResultRecord &vrMiResultRecord);
   bool
   MiOutOfBandRecordToStdout(const CMICmnMIOutOfBandRecord &vrMiResultRecord);
-  bool MiStoppedAtBreakPoint(const MIuint64 vBrkPtId,
-                             const lldb::SBBreakpoint &vBrkPt);
-  bool MiStoppedAtWatchpoint(lldb::SBWatchpoint &vrWatchPt);
+  bool MiStoppedAtBreakPoint(const MIuint64 vBreakpointId,
+                             const lldb::SBBreakpoint &vBreakpoint);
+  bool MiStoppedAtWatchpoint(lldb::SBWatchpoint &vrWatchpoint);
   bool TextToStdout(const CMIUtilString &vrTxt);
   bool TextToStderr(const CMIUtilString &vrTxt);
   bool UpdateSelectedThread();

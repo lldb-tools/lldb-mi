@@ -344,11 +344,12 @@ bool CMICmnLLDBDebuggerHandleEvents::HandleEventSBBreakpointLocationsAdded(
   if (nLoc == 0)
     return MIstatus::success;
 
-  lldb::SBBreakpoint brkPt = lldb::SBBreakpoint::GetBreakpointFromEvent(vEvent);
+  lldb::SBBreakpoint breakpoint =
+      lldb::SBBreakpoint::GetBreakpointFromEvent(vEvent);
   const CMIUtilString plural((nLoc == 1) ? "" : "s");
   const CMIUtilString msg(
       CMIUtilString::Format("%d location%s added to breakpoint %d", nLoc,
-                            plural.c_str(), brkPt.GetID()));
+                            plural.c_str(), breakpoint.GetID()));
 
   return TextToStdout(msg);
 }
@@ -356,62 +357,66 @@ bool CMICmnLLDBDebuggerHandleEvents::HandleEventSBBreakpointLocationsAdded(
 //++
 // Details: Handle a LLDB SBBreakpoint or SBWatchpoint event.
 // Type:    Method.
-// Args:    vrStopPt  - (R) An LLDB breakpoint or watchpoint.
+// Args:    vrStoppoint  - (R) An LLDB breakpoint or watchpoint.
 // Return:  MIstatus::success - Functionality succeeded.
 //          MIstatus::failure - Functionality failed.
 // Throws:  None.
 //--
 template <class T, class>
-bool CMICmnLLDBDebuggerHandleEvents::HandleEventStoppointCmn(T &vrStopPt) {
-  if (!vrStopPt.IsValid())
+bool CMICmnLLDBDebuggerHandleEvents::HandleEventStoppointCmn(T &vrStoppoint) {
+  if (!vrStoppoint.IsValid())
     return MIstatus::success;
 
   CMICmnLLDBDebugSessionInfo &rSessionInfo(
       CMICmnLLDBDebugSessionInfo::Instance());
-  CMICmnLLDBDebugSessionInfo::SStopPtInfo sStopPtInfo;
-  if (!rSessionInfo.GetStopPtInfo(vrStopPt, sStopPtInfo)) {
+  CMICmnLLDBDebugSessionInfo::SStoppointInfo sStoppointInfo;
+  if (!rSessionInfo.GetStoppointInfo(vrStoppoint, sStoppointInfo)) {
     const char *ptType =
         std::is_same<std::remove_cv_t<T>, lldb::SBBreakpoint>::value
             ? "breakpoint"
             : "watchpoint";
     SetErrorDescription(
-        CMIUtilString::Format(MIRSRC(IDS_LLDBOUTOFBAND_ERR_STOPPT_INFO_GET),
-                              __func__, ptType, vrStopPt.GetID()));
+        CMIUtilString::Format(MIRSRC(IDS_LLDBOUTOFBAND_ERR_STOPPOINT_INFO_GET),
+                              __func__, ptType, vrStoppoint.GetID()));
     return MIstatus::failure;
   }
 
   // CODETAG_LLDB_BREAKPOINT_CREATION
   // This is in a worker thread
   // Add more breakpoint information or overwrite existing information
-  CMICmnLLDBDebugSessionInfo::SStopPtInfo sStopPtInfoRec;
-  if (!rSessionInfo.RecordStopPtInfoGet(sStopPtInfo.m_nMiId, sStopPtInfoRec)) {
+  CMICmnLLDBDebugSessionInfo::SStoppointInfo sStoppointInfoRec;
+  if (!rSessionInfo.RecordStoppointInfoGet(sStoppointInfo.m_nMiId,
+                                           sStoppointInfoRec)) {
     SetErrorDescription(CMIUtilString::Format(
-        MIRSRC(IDS_LLDBOUTOFBAND_ERR_STOPPT_NOTFOUND), __func__,
-        static_cast<uint64_t>(sStopPtInfo.m_nMiId)));
+        MIRSRC(IDS_LLDBOUTOFBAND_ERR_STOPPOINT_NOTFOUND), __func__,
+        static_cast<uint64_t>(sStoppointInfo.m_nMiId)));
     return MIstatus::failure;
   }
-  sStopPtInfo.m_bDisp = sStopPtInfoRec.m_bDisp;
-  sStopPtInfo.m_bEnabled = vrStopPt.IsEnabled();
-  sStopPtInfo.m_bHaveArgOptionThreadGrp = false;
-  sStopPtInfo.m_strOptThrdGrp = "";
-  sStopPtInfo.m_nTimes = vrStopPt.GetHitCount();
-  sStopPtInfo.m_strOrigLoc = sStopPtInfoRec.m_strOrigLoc;
-  sStopPtInfo.m_nIgnore = sStopPtInfoRec.m_nIgnore;
-  sStopPtInfo.m_bPending = sStopPtInfoRec.m_bPending;
-  sStopPtInfo.m_bCondition = sStopPtInfoRec.m_bCondition;
-  sStopPtInfo.m_strCondition = sStopPtInfoRec.m_strCondition;
-  sStopPtInfo.m_bBrkPtThreadId = sStopPtInfoRec.m_bBrkPtThreadId;
-  sStopPtInfo.m_nBrkPtThreadId = sStopPtInfoRec.m_nBrkPtThreadId;
-  sStopPtInfo.m_watchPtExpr = sStopPtInfoRec.m_watchPtExpr;
-  sStopPtInfo.m_watchPtRead = sStopPtInfoRec.m_watchPtRead;
-  sStopPtInfo.m_watchPtWrite = sStopPtInfoRec.m_watchPtWrite;
+  sStoppointInfo.m_bDisp = sStoppointInfoRec.m_bDisp;
+  sStoppointInfo.m_bEnabled = vrStoppoint.IsEnabled();
+  sStoppointInfo.m_bHaveArgOptionThreadGrp = false;
+  sStoppointInfo.m_strOptThrdGrp = "";
+  sStoppointInfo.m_nTimes = vrStoppoint.GetHitCount();
+  sStoppointInfo.m_strOrigLoc = sStoppointInfoRec.m_strOrigLoc;
+  sStoppointInfo.m_nIgnore = sStoppointInfoRec.m_nIgnore;
+  sStoppointInfo.m_bPending = sStoppointInfoRec.m_bPending;
+  sStoppointInfo.m_bCondition = sStoppointInfoRec.m_bCondition;
+  sStoppointInfo.m_strCondition = sStoppointInfoRec.m_strCondition;
+  sStoppointInfo.m_bBreakpointThreadId =
+      sStoppointInfoRec.m_bBreakpointThreadId;
+  sStoppointInfo.m_nBreakpointThreadId =
+      sStoppointInfoRec.m_nBreakpointThreadId;
+  sStoppointInfo.m_watchpointExpr = sStoppointInfoRec.m_watchpointExpr;
+  sStoppointInfo.m_watchpointRead = sStoppointInfoRec.m_watchpointRead;
+  sStoppointInfo.m_watchpointWrite = sStoppointInfoRec.m_watchpointWrite;
 
   // MI print
   // "=breakpoint-modified,bkpt={number=\"%d\",type=\"breakpoint\",disp=\"%s\",enabled=\"%c\",addr=\"0x%016"
   // PRIx64 "\",
   // func=\"%s\",file=\"%s\",fullname=\"%s/%s\",line=\"%d\",times=\"%d\",original-location=\"%s\"}"
   CMICmnMIValueTuple miValueTuple;
-  if (!rSessionInfo.MIResponseFormBrkPtInfo(sStopPtInfo, miValueTuple)) {
+  if (!rSessionInfo.MIResponseFormBreakpointInfo(sStoppointInfo,
+                                                 miValueTuple)) {
     SetErrorDescription(CMIUtilString::Format(
         MIRSRC(IDS_LLDBOUTOFBAND_ERR_FORM_MI_RESPONSE), __func__));
     return MIstatus::failure;
@@ -432,36 +437,35 @@ template bool
 CMICmnLLDBDebuggerHandleEvents::HandleEventStoppointCmn(lldb::SBWatchpoint &);
 
 template <class T>
-static void
-FillInPointTypeDependentInfo(T &vrStopPt,
-                             CMICmnLLDBDebugSessionInfo::SStopPtInfo &vrInfo);
+static void FillInPointTypeDependentInfo(
+    T &vrStoppoint, CMICmnLLDBDebugSessionInfo::SStoppointInfo &vrInfo);
 
 template <>
 void FillInPointTypeDependentInfo(
-    lldb::SBBreakpoint &vrStopPt,
-    CMICmnLLDBDebugSessionInfo::SStopPtInfo &vrInfo) {
-  vrInfo.m_bDisp = vrStopPt.IsOneShot();
-  vrInfo.m_bBrkPtThreadId = vrStopPt.GetThreadID() != 0;
-  vrInfo.m_nBrkPtThreadId = vrStopPt.GetThreadID();
+    lldb::SBBreakpoint &vrStoppoint,
+    CMICmnLLDBDebugSessionInfo::SStoppointInfo &vrInfo) {
+  vrInfo.m_bDisp = vrStoppoint.IsOneShot();
+  vrInfo.m_bBreakpointThreadId = vrStoppoint.GetThreadID() != 0;
+  vrInfo.m_nBreakpointThreadId = vrStoppoint.GetThreadID();
 }
 
 template <>
 void FillInPointTypeDependentInfo(
-    lldb::SBWatchpoint &vrStopPt,
-    CMICmnLLDBDebugSessionInfo::SStopPtInfo &vrInfo) {
+    lldb::SBWatchpoint &vrStoppoint,
+    CMICmnLLDBDebugSessionInfo::SStoppointInfo &vrInfo) {
   // The original expression is known by `break-watch` command implementation
   // only. So, if the event is handled before the command finished then the
   // command will put a real value later. In case a watchpoint is added via
   // typing a command directly into the console, we cannot determine the
   // original expression at all. So, we use the address as an expression here.
-  vrInfo.m_watchPtExpr = CMIUtilString::Format(
-      "0x%08" PRIx64, static_cast<uint64_t>(vrStopPt.GetWatchAddress()));
+  vrInfo.m_watchpointExpr = CMIUtilString::Format(
+      "0x%08" PRIx64, static_cast<uint64_t>(vrStoppoint.GetWatchAddress()));
 
   // There is no way to figure out the type of the watchpoint by the watchpoint
   // itself, so here the default values are set and the real values must be set
   // by `break-watch` command implementation.
-  vrInfo.m_watchPtRead = false;
-  vrInfo.m_watchPtWrite = true;
+  vrInfo.m_watchpointRead = false;
+  vrInfo.m_watchpointWrite = true;
 
   vrInfo.m_bDisp = false;
 }
@@ -477,7 +481,7 @@ void FillInPointTypeDependentInfo(
 //          create a
 //          breakpoint directly, hence no MI command, hence no previous record
 //          of the
-//          breakpoint so RecordStopPtInfoGet() will fail. We still get the
+//          breakpoint so RecordStoppointInfoGet() will fail. We still get the
 //          event though so need to create a breakpoint info object here and
 //          send appropriate MI response.
 // Type:    Method.
@@ -487,71 +491,74 @@ void FillInPointTypeDependentInfo(
 // Throws:  None.
 //--
 template <class T, class>
-bool CMICmnLLDBDebuggerHandleEvents::HandleEventStoppointAdded(T &vrStopPt) {
-  if (!vrStopPt.IsValid())
+bool CMICmnLLDBDebuggerHandleEvents::HandleEventStoppointAdded(T &vrStoppoint) {
+  if (!vrStoppoint.IsValid())
     return MIstatus::failure;
 
   CMICmnLLDBDebugSessionInfo &rSessionInfo(
       CMICmnLLDBDebugSessionInfo::Instance());
-  CMICmnLLDBDebugSessionInfo::SStopPtInfo sStopPtInfo;
-  if (!rSessionInfo.GetStopPtInfo(vrStopPt, sStopPtInfo)) {
+  CMICmnLLDBDebugSessionInfo::SStoppointInfo sStoppointInfo;
+  if (!rSessionInfo.GetStoppointInfo(vrStoppoint, sStoppointInfo)) {
     const char *ptType =
         std::is_same<std::remove_cv_t<T>, lldb::SBBreakpoint>::value
             ? "breakpoint"
             : "watchpoint";
     SetErrorDescription(
-        CMIUtilString::Format(MIRSRC(IDS_LLDBOUTOFBAND_ERR_STOPPT_INFO_GET),
-                              __func__, ptType, vrStopPt.GetID()));
+        CMIUtilString::Format(MIRSRC(IDS_LLDBOUTOFBAND_ERR_STOPPOINT_INFO_GET),
+                              __func__, ptType, vrStoppoint.GetID()));
     return MIstatus::failure;
   }
 
   // CODETAG_LLDB_BREAKPOINT_CREATION
   // This is in a worker thread
-  CMICmnLLDBDebugSessionInfo::SStopPtInfo sStopPtInfoRec;
-  const bool bBrkPtExistAlready =
-      rSessionInfo.RecordStopPtInfoGet(sStopPtInfo.m_nMiId, sStopPtInfoRec);
-  if (bBrkPtExistAlready) {
+  CMICmnLLDBDebugSessionInfo::SStoppointInfo sStoppointInfoRec;
+  const bool bBreakpointExistAlready = rSessionInfo.RecordStoppointInfoGet(
+      sStoppointInfo.m_nMiId, sStoppointInfoRec);
+  if (bBreakpointExistAlready) {
     // Update breakpoint information object
-    sStopPtInfo.m_bDisp = sStopPtInfoRec.m_bDisp;
-    sStopPtInfo.m_bEnabled = vrStopPt.IsEnabled();
-    sStopPtInfo.m_bHaveArgOptionThreadGrp = false;
-    sStopPtInfo.m_strOptThrdGrp.clear();
-    sStopPtInfo.m_nTimes = vrStopPt.GetHitCount();
-    sStopPtInfo.m_strOrigLoc = sStopPtInfoRec.m_strOrigLoc;
-    sStopPtInfo.m_nIgnore = sStopPtInfoRec.m_nIgnore;
-    sStopPtInfo.m_bPending = sStopPtInfoRec.m_bPending;
-    sStopPtInfo.m_bCondition = sStopPtInfoRec.m_bCondition;
-    sStopPtInfo.m_strCondition = sStopPtInfoRec.m_strCondition;
-    sStopPtInfo.m_bBrkPtThreadId = sStopPtInfoRec.m_bBrkPtThreadId;
-    sStopPtInfo.m_nBrkPtThreadId = sStopPtInfoRec.m_nBrkPtThreadId;
-    sStopPtInfo.m_watchPtExpr = sStopPtInfoRec.m_watchPtExpr;
-    sStopPtInfo.m_watchPtRead = sStopPtInfoRec.m_watchPtRead;
-    sStopPtInfo.m_watchPtWrite = sStopPtInfoRec.m_watchPtWrite;
+    sStoppointInfo.m_bDisp = sStoppointInfoRec.m_bDisp;
+    sStoppointInfo.m_bEnabled = vrStoppoint.IsEnabled();
+    sStoppointInfo.m_bHaveArgOptionThreadGrp = false;
+    sStoppointInfo.m_strOptThrdGrp.clear();
+    sStoppointInfo.m_nTimes = vrStoppoint.GetHitCount();
+    sStoppointInfo.m_strOrigLoc = sStoppointInfoRec.m_strOrigLoc;
+    sStoppointInfo.m_nIgnore = sStoppointInfoRec.m_nIgnore;
+    sStoppointInfo.m_bPending = sStoppointInfoRec.m_bPending;
+    sStoppointInfo.m_bCondition = sStoppointInfoRec.m_bCondition;
+    sStoppointInfo.m_strCondition = sStoppointInfoRec.m_strCondition;
+    sStoppointInfo.m_bBreakpointThreadId =
+        sStoppointInfoRec.m_bBreakpointThreadId;
+    sStoppointInfo.m_nBreakpointThreadId =
+        sStoppointInfoRec.m_nBreakpointThreadId;
+    sStoppointInfo.m_watchpointExpr = sStoppointInfoRec.m_watchpointExpr;
+    sStoppointInfo.m_watchpointRead = sStoppointInfoRec.m_watchpointRead;
+    sStoppointInfo.m_watchpointWrite = sStoppointInfoRec.m_watchpointWrite;
   } else {
     // Create a breakpoint information object
-    sStopPtInfo.m_bEnabled = vrStopPt.IsEnabled();
-    sStopPtInfo.m_bHaveArgOptionThreadGrp = false;
-    sStopPtInfo.m_strOptThrdGrp.clear();
-    sStopPtInfo.m_strOrigLoc = CMIUtilString::Format(
-        "%s:%d", sStopPtInfo.m_fileName.c_str(), sStopPtInfo.m_nLine);
-    sStopPtInfo.m_nIgnore = vrStopPt.GetIgnoreCount();
-    sStopPtInfo.m_bPending = false;
-    const char *pStrCondition = vrStopPt.GetCondition();
-    sStopPtInfo.m_bCondition = pStrCondition != nullptr;
-    sStopPtInfo.m_strCondition =
+    sStoppointInfo.m_bEnabled = vrStoppoint.IsEnabled();
+    sStoppointInfo.m_bHaveArgOptionThreadGrp = false;
+    sStoppointInfo.m_strOptThrdGrp.clear();
+    sStoppointInfo.m_strOrigLoc = CMIUtilString::Format(
+        "%s:%d", sStoppointInfo.m_fileName.c_str(), sStoppointInfo.m_nLine);
+    sStoppointInfo.m_nIgnore = vrStoppoint.GetIgnoreCount();
+    sStoppointInfo.m_bPending = false;
+    const char *pStrCondition = vrStoppoint.GetCondition();
+    sStoppointInfo.m_bCondition = pStrCondition != nullptr;
+    sStoppointInfo.m_strCondition =
         (pStrCondition != nullptr) ? pStrCondition : "??";
-    FillInPointTypeDependentInfo(vrStopPt, sStopPtInfo);
+    FillInPointTypeDependentInfo(vrStoppoint, sStoppointInfo);
   }
 
   CMICmnMIValueTuple miValueTuple;
-  if (!rSessionInfo.MIResponseFormBrkPtInfo(sStopPtInfo, miValueTuple)) {
+  if (!rSessionInfo.MIResponseFormBreakpointInfo(sStoppointInfo,
+                                                 miValueTuple)) {
     SetErrorDescription(CMIUtilString::Format(
         MIRSRC(IDS_LLDBOUTOFBAND_ERR_FORM_MI_RESPONSE), __func__));
     return MIstatus::failure;
   }
 
   bool bOk = MIstatus::success;
-  if (bBrkPtExistAlready) {
+  if (bBreakpointExistAlready) {
     // MI print
     // "=breakpoint-modified,bkpt={number=\"%d\",type=\"breakpoint\",disp=\"%s\",enabled=\"%c\",addr=\"0x%016"
     // PRIx64
@@ -562,18 +569,18 @@ bool CMICmnLLDBDebuggerHandleEvents::HandleEventStoppointAdded(T &vrStopPt) {
     bOk = MiOutOfBandRecordToStdout(miOutOfBandRecord);
     bOk = bOk && CMICmnStreamStdout::WritePrompt();
   } else {
-    // CODETAG_LLDB_STOPPT_ID_MAX
-    if (sStopPtInfo.m_nMiId > rSessionInfo.m_nBrkPointCntMax) {
+    // CODETAG_LLDB_STOPPOINT_ID_MAX
+    if (sStoppointInfo.m_nMiId > rSessionInfo.m_nBreakpointCntMax) {
       SetErrorDescription(CMIUtilString::Format(
-          MIRSRC(IDS_LLDBOUTOFBAND_ERR_STOPPT_CNT_EXCEEDED), __func__,
-          static_cast<uint64_t>(rSessionInfo.m_nBrkPointCntMax),
-          static_cast<uint64_t>(sStopPtInfo.m_nMiId)));
+          MIRSRC(IDS_LLDBOUTOFBAND_ERR_STOPPOINT_CNT_EXCEEDED), __func__,
+          static_cast<uint64_t>(rSessionInfo.m_nBreakpointCntMax),
+          static_cast<uint64_t>(sStoppointInfo.m_nMiId)));
       return MIstatus::failure;
     }
-    if (!rSessionInfo.RecordStopPtInfo(sStopPtInfo)) {
+    if (!rSessionInfo.RecordStoppointInfo(sStoppointInfo)) {
       SetErrorDescription(CMIUtilString::Format(
-          MIRSRC(IDS_LLDBOUTOFBAND_ERR_STOPPT_INFO_SET), __func__,
-          static_cast<uint64_t>(sStopPtInfo.m_nMiId)));
+          MIRSRC(IDS_LLDBOUTOFBAND_ERR_STOPPOINT_INFO_SET), __func__,
+          static_cast<uint64_t>(sStoppointInfo.m_nMiId)));
       return MIstatus::failure;
     }
 
@@ -597,7 +604,7 @@ template bool
 CMICmnLLDBDebuggerHandleEvents::HandleEventStoppointAdded(lldb::SBWatchpoint &);
 
 template <class T, class>
-bool CMICmnLLDBDebuggerHandleEvents::RemoveStoppointInfo(T &vrStopPt) {
+bool CMICmnLLDBDebuggerHandleEvents::RemoveStoppointInfo(T &vrStoppoint) {
   auto eType = std::is_same<std::remove_cv_t<T>, lldb::SBBreakpoint>::value
                    ? CMICmnLLDBDebugSessionInfo::eStoppointType_Breakpoint
                    : CMICmnLLDBDebugSessionInfo::eStoppointType_Watchpoint;
@@ -605,12 +612,13 @@ bool CMICmnLLDBDebuggerHandleEvents::RemoveStoppointInfo(T &vrStopPt) {
   CMICmnLLDBDebugSessionInfo &rSessionInfo(
       CMICmnLLDBDebugSessionInfo::Instance());
 
-  auto nMiStopPtId =
-      rSessionInfo.GetOrCreateMiStopPtId(vrStopPt.GetID(), eType);
-  if (!rSessionInfo.RecordStopPtInfoDelete(nMiStopPtId))
+  auto nMiStoppointId =
+      rSessionInfo.GetOrCreateMiStoppointId(vrStoppoint.GetID(), eType);
+  if (!rSessionInfo.RecordStoppointInfoDelete(nMiStoppointId))
     return MIstatus::failure;
 
-  return rSessionInfo.RemoveLldbToMiStopPtIdMapping(vrStopPt.GetID(), eType);
+  return rSessionInfo.RemoveLldbToMiStoppointIdMapping(vrStoppoint.GetID(),
+                                                       eType);
 }
 
 //++
@@ -1431,13 +1439,13 @@ bool CMICmnLLDBDebuggerHandleEvents::HandleProcessEventStopReasonBreakpoint() {
 
   lldb::SBProcess sbProcess =
       CMICmnLLDBDebugSessionInfo::Instance().GetProcess();
-  const MIuint64 brkPtId =
+  const MIuint64 breakpointId =
       sbProcess.GetSelectedThread().GetStopReasonDataAtIndex(0);
-  lldb::SBBreakpoint brkPt =
+  lldb::SBBreakpoint breakpoint =
       CMICmnLLDBDebugSessionInfo::Instance().GetTarget().FindBreakpointByID(
-          (MIuint)brkPtId);
+          (MIuint)breakpointId);
 
-  return MiStoppedAtBreakPoint(brkPtId, brkPt);
+  return MiStoppedAtBreakPoint(breakpointId, breakpoint);
 }
 
 //++
@@ -1460,27 +1468,27 @@ bool CMICmnLLDBDebuggerHandleEvents::HandleProcessEventStopReasonWatchpoint() {
 
   lldb::SBProcess sbProcess =
       CMICmnLLDBDebugSessionInfo::Instance().GetProcess();
-  const auto watchPtId = static_cast<uint32_t>(
+  const auto watchpointId = static_cast<uint32_t>(
       sbProcess.GetSelectedThread().GetStopReasonDataAtIndex(0U));
-  lldb::SBWatchpoint watchPt =
+  lldb::SBWatchpoint watchpoint =
       CMICmnLLDBDebugSessionInfo::Instance().GetTarget().FindWatchpointByID(
-          watchPtId);
+          watchpointId);
 
-  return MiStoppedAtWatchpoint(watchPt);
+  return MiStoppedAtWatchpoint(watchpoint);
 }
 
 //++
 // Details: Form the MI Out-of-band response for stopped reason on hitting a
 // break point.
 // Type:    Method.
-// Args:    vBrkPtId    - (R) The LLDB break point's ID
-//          vBrkPt      - (R) THe LLDB break point object.
+// Args:    vBreakpointId    - (R) The LLDB break point's ID
+//          vBreakpoint      - (R) THe LLDB break point object.
 // Return:  MIstatus::success - Functionality succeeded.
 //          MIstatus::failure - Functionality failed.
 // Throws:  None.
 //--
 bool CMICmnLLDBDebuggerHandleEvents::MiStoppedAtBreakPoint(
-    const MIuint64 vBrkPtId, const lldb::SBBreakpoint &vBrkPt) {
+    const MIuint64 vBreakpointId, const lldb::SBBreakpoint &vBreakpoint) {
   bool bOk = MIstatus::success;
 
   lldb::SBProcess sbProcess =
@@ -1497,7 +1505,7 @@ bool CMICmnLLDBDebuggerHandleEvents::MiStoppedAtBreakPoint(
     const CMICmnMIValueConst miValueConst2("del");
     const CMICmnMIValueResult miValueResult2("disp", miValueConst2);
     miOutOfBandRecord.Add(miValueResult2);
-    const CMIUtilString strBkp(CMIUtilString::Format("%d", vBrkPtId));
+    const CMIUtilString strBkp(CMIUtilString::Format("%d", vBreakpointId));
     const CMICmnMIValueConst miValueConst3(strBkp);
     CMICmnMIValueResult miValueResult3("bkptno", miValueConst3);
     miOutOfBandRecord.Add(miValueResult3);
@@ -1505,7 +1513,7 @@ bool CMICmnLLDBDebuggerHandleEvents::MiStoppedAtBreakPoint(
     const CMICmnMIValueResult miValueResult4("frame", miValueConst4);
     miOutOfBandRecord.Add(miValueResult4);
     const CMIUtilString strThreadId(
-        CMIUtilString::Format("%d", vBrkPt.GetThreadIndex()));
+        CMIUtilString::Format("%d", vBreakpoint.GetThreadIndex()));
     const CMICmnMIValueConst miValueConst5(strThreadId);
     const CMICmnMIValueResult miValueResult5("thread-id", miValueConst5);
     miOutOfBandRecord.Add(miValueResult5);
@@ -1531,7 +1539,7 @@ bool CMICmnLLDBDebuggerHandleEvents::MiStoppedAtBreakPoint(
   const CMICmnMIValueConst miValueConstA("del");
   const CMICmnMIValueResult miValueResultA("disp", miValueConstA);
   miOutOfBandRecord.Add(miValueResultA);
-  const CMIUtilString strBkp(CMIUtilString::Format("%d", vBrkPtId));
+  const CMIUtilString strBkp(CMIUtilString::Format("%d", vBreakpointId));
   const CMICmnMIValueConst miValueConstB(strBkp);
   CMICmnMIValueResult miValueResultB("bkptno", miValueConstB);
   miOutOfBandRecord.Add(miValueResultB);
@@ -1571,25 +1579,26 @@ bool CMICmnLLDBDebuggerHandleEvents::MiStoppedAtBreakPoint(
 // Details: Form the MI Out-of-band response for stopped reason on hitting a
 //          watch point.
 // Type:    Method.
-// Args:    vrWatchPtId    - (R) The LLDB watch point.
+// Args:    vrWatchpointId    - (R) The LLDB watch point.
 // Return:  MIstatus::success - Functionality succeeded.
 //          MIstatus::failure - Functionality failed.
 // Throws:  None.
 //--
 bool CMICmnLLDBDebuggerHandleEvents::MiStoppedAtWatchpoint(
-    lldb::SBWatchpoint &vrWatchPt) {
+    lldb::SBWatchpoint &vrWatchpoint) {
   CMICmnLLDBDebugSessionInfo &rSessionInfo(
       CMICmnLLDBDebugSessionInfo::Instance());
 
-  auto nGdbBrkPtId = rSessionInfo.GetOrCreateMiStopPtId(
-      vrWatchPt.GetID(), CMICmnLLDBDebugSessionInfo::eStoppointType_Watchpoint);
+  auto nGdbBreakpointId = rSessionInfo.GetOrCreateMiStoppointId(
+      vrWatchpoint.GetID(),
+      CMICmnLLDBDebugSessionInfo::eStoppointType_Watchpoint);
 
-  CMICmnLLDBDebugSessionInfo::SStopPtInfo sStopPtInfo;
-  if (!rSessionInfo.RecordStopPtInfoGet(nGdbBrkPtId, sStopPtInfo))
+  CMICmnLLDBDebugSessionInfo::SStoppointInfo sStoppointInfo;
+  if (!rSessionInfo.RecordStoppointInfoGet(nGdbBreakpointId, sStoppointInfo))
     return MIstatus::failure;
 
-  const char *reason = sStopPtInfo.m_watchPtRead
-                           ? sStopPtInfo.m_watchPtWrite
+  const char *reason = sStoppointInfo.m_watchpointRead
+                           ? sStoppointInfo.m_watchpointWrite
                                  ? "access-watchpoint-trigger"
                                  : "read-watchpoint-trigger"
                            : "watchpoint-trigger";
@@ -1604,7 +1613,7 @@ bool CMICmnLLDBDebuggerHandleEvents::MiStoppedAtWatchpoint(
 
   // wpt={...}
   CMICmnMIValueResult miValueResultWpt;
-  rSessionInfo.MIResponseFormWatchPtInfo(sStopPtInfo, miValueResultWpt);
+  rSessionInfo.MIResponseFormWatchpointInfo(sStoppointInfo, miValueResultWpt);
   miOutOfBandRecord.Add(miValueResultWpt);
 
   // frame={...}

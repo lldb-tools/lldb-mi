@@ -77,26 +77,27 @@ private:
 
   // Attributes:
 private:
-  bool m_bBrkPtIsTemp;
+  bool m_bBreakpointIsTemp;
   bool m_bHaveArgOptionThreadGrp;
   CMIUtilString m_brkName;
   CMIUtilString m_strArgOptionThreadGrp;
-  lldb::SBBreakpoint m_brkPt;
-  bool m_bBrkPtIsPending;
-  MIuint m_nBrkPtIgnoreCount;
-  bool m_bBrkPtEnabled;
-  bool m_bBrkPtCondition;
-  CMIUtilString m_brkPtCondition;
-  bool m_bBrkPtThreadId;
-  MIuint m_nBrkPtThreadId;
-  const CMIUtilString m_constStrArgNamedTempBrkPt;
-  const CMIUtilString m_constStrArgNamedHWBrkPt; // Not handled by *this command
-  const CMIUtilString m_constStrArgNamedPendinfBrkPt;
-  const CMIUtilString m_constStrArgNamedDisableBrkPt;
+  lldb::SBBreakpoint m_breakpoint;
+  bool m_bBreakpointIsPending;
+  MIuint m_nBreakpointIgnoreCount;
+  bool m_bBreakpointEnabled;
+  bool m_bBreakpointCondition;
+  CMIUtilString m_breakpointCondition;
+  bool m_bBreakpointThreadId;
+  MIuint m_nBreakpointThreadId;
+  const CMIUtilString m_constStrArgNamedTempBreakpoint;
+  const CMIUtilString
+      m_constStrArgNamedHWBreakpoint; // Not handled by *this command
+  const CMIUtilString m_constStrArgNamedPendinfBreakpoint;
+  const CMIUtilString m_constStrArgNamedDisableBreakpoint;
   const CMIUtilString m_constStrArgNamedTracePt; // Not handled by *this command
-  const CMIUtilString m_constStrArgNamedConditionalBrkPt;
+  const CMIUtilString m_constStrArgNamedConditionalBreakpoint;
   const CMIUtilString m_constStrArgNamedInoreCnt;
-  const CMIUtilString m_constStrArgNamedRestrictBrkPtToThreadId;
+  const CMIUtilString m_constStrArgNamedRestrictBreakpointToThreadId;
   const CMIUtilString m_constStrArgNamedLocation;
 };
 
@@ -126,7 +127,7 @@ public:
 
   // Attributes:
 private:
-  const CMIUtilString m_constStrArgNamedBrkPt;
+  const CMIUtilString m_constStrArgNamedBreakpoint;
 };
 
 //++
@@ -155,9 +156,9 @@ public:
 
   // Attributes:
 private:
-  const CMIUtilString m_constStrArgNamedBrkPt;
-  bool m_bBrkPtDisabledOk;
-  MIuint m_nMiStopPtId;
+  const CMIUtilString m_constStrArgNamedBreakpoint;
+  bool m_bBreakpointDisabledOk;
+  MIuint m_nMiStoppointId;
 };
 
 //++
@@ -186,9 +187,9 @@ public:
 
   // Attributes:
 private:
-  const CMIUtilString m_constStrArgNamedBrkPt;
-  bool m_bBrkPtEnabledOk;
-  MIuint m_nMiStopPtId;
+  const CMIUtilString m_constStrArgNamedBreakpoint;
+  bool m_bBreakpointEnabledOk;
+  MIuint m_nMiStoppointId;
 };
 
 //++
@@ -217,29 +218,30 @@ public:
 
   // Methods:
 private:
-  bool UpdateStopPtInfo(CMICmnLLDBDebugSessionInfo &rSessionInfo);
+  bool UpdateStoppointInfo(CMICmnLLDBDebugSessionInfo &rSessionInfo);
   template <class T>
-  bool SetIgnoreCount(CMICmnLLDBDebugSessionInfo &rSessionInfo, T &vrStopPt) {
-    if (!vrStopPt.IsValid()) {
-      const CMIUtilString strBrkPtId(CMIUtilString::Format(
-          "%" PRIu64, static_cast<uint64_t>(m_nMiStopPtId)));
-      SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_STOPPT_INVALID),
+  bool SetIgnoreCount(CMICmnLLDBDebugSessionInfo &rSessionInfo,
+                      T &vrStoppoint) {
+    if (!vrStoppoint.IsValid()) {
+      const CMIUtilString strBreakpointId(CMIUtilString::Format(
+          "%" PRIu64, static_cast<uint64_t>(m_nMiStoppointId)));
+      SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_STOPPOINT_INVALID),
                                      m_cmdData.strMiCmd.c_str(),
-                                     strBrkPtId.c_str()));
+                                     strBreakpointId.c_str()));
       return MIstatus::failure;
     }
 
-    vrStopPt.SetIgnoreCount(m_nBrkPtCount);
+    vrStoppoint.SetIgnoreCount(m_nBreakpointCount);
 
-    return UpdateStopPtInfo(rSessionInfo);
+    return UpdateStoppointInfo(rSessionInfo);
   }
 
   // Attributes:
 private:
   const CMIUtilString m_constStrArgNamedNumber;
   const CMIUtilString m_constStrArgNamedCount;
-  MIuint m_nMiStopPtId;
-  MIuint m_nBrkPtCount;
+  MIuint m_nMiStoppointId;
+  MIuint m_nBreakpointCount;
 };
 
 //++
@@ -269,21 +271,21 @@ public:
   // Methods:
 private:
   CMIUtilString GetRestOfExpressionNotSurroundedInQuotes();
-  bool UpdateStopPtInfo(CMICmnLLDBDebugSessionInfo &rSessionInfo);
+  bool UpdateStoppointInfo(CMICmnLLDBDebugSessionInfo &rSessionInfo);
   template <class T>
-  bool SetCondition(CMICmnLLDBDebugSessionInfo &rSessionInfo, T &vrStopPt) {
-    if (!vrStopPt.IsValid()) {
-      const CMIUtilString strBrkPtId(CMIUtilString::Format(
-          "%" PRIu64, static_cast<uint64_t>(m_nMiStopPtId)));
-      SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_STOPPT_INVALID),
+  bool SetCondition(CMICmnLLDBDebugSessionInfo &rSessionInfo, T &vrStoppoint) {
+    if (!vrStoppoint.IsValid()) {
+      const CMIUtilString strBreakpointId(CMIUtilString::Format(
+          "%" PRIu64, static_cast<uint64_t>(m_nMiStoppointId)));
+      SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_STOPPOINT_INVALID),
                                      m_cmdData.strMiCmd.c_str(),
-                                     strBrkPtId.c_str()));
+                                     strBreakpointId.c_str()));
       return MIstatus::failure;
     }
 
-    vrStopPt.SetCondition(m_strBrkPtExpr.c_str());
+    vrStoppoint.SetCondition(m_strBreakpointExpr.c_str());
 
-    return UpdateStopPtInfo(rSessionInfo);
+    return UpdateStoppointInfo(rSessionInfo);
   }
 
   // Attributes:
@@ -294,8 +296,8 @@ private:
                                                       // spec, we need to handle
                                                       // expressions not
                                                       // surrounded by quotes
-  MIuint m_nMiStopPtId;
-  CMIUtilString m_strBrkPtExpr;
+  MIuint m_nMiStoppointId;
+  CMIUtilString m_strBreakpointExpr;
 };
 
 //++
@@ -326,10 +328,10 @@ public:
 private:
   // Attributes:
 private:
-  const CMIUtilString m_constStrArgNamedAccessWatchPt;
-  const CMIUtilString m_constStrArgNamedReadWatchPt;
+  const CMIUtilString m_constStrArgNamedAccessWatchpoint;
+  const CMIUtilString m_constStrArgNamedReadWatchpoint;
   const CMIUtilString m_constStrArgNamedExpr;
 
-  CMICmnLLDBDebugSessionInfo::SStopPtInfo m_stopPtInfo;
-  lldb::SBWatchpoint m_watchPt;
+  CMICmnLLDBDebugSessionInfo::SStoppointInfo m_stoppointInfo;
+  lldb::SBWatchpoint m_watchpoint;
 };

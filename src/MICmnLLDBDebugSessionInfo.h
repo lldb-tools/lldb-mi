@@ -103,13 +103,14 @@ public:
   //          about a break around and record stop point information to be
   //          recalled by other commands or LLDB event handling functions.
   //--
-  struct SStopPtInfo {
-    SStopPtInfo()
+  struct SStoppointInfo {
+    SStoppointInfo()
         : m_nLldbId(0), m_nMiId(0), m_bDisp(false), m_bEnabled(false),
           m_addr(0), m_nLine(0), m_bHaveArgOptionThreadGrp(false), m_nTimes(0),
-          m_watchPtVariable(false), m_watchPtRead(false), m_watchPtWrite(false),
-          m_bPending(false), m_nIgnore(0), m_bCondition(false),
-          m_bBrkPtThreadId(false), m_nBrkPtThreadId(0) {}
+          m_watchpointVariable(false), m_watchpointRead(false),
+          m_watchpointWrite(false), m_bPending(false), m_nIgnore(0),
+          m_bCondition(false), m_bBreakpointThreadId(false),
+          m_nBreakpointThreadId(0) {}
 
     MIuint m_nLldbId;         // LLDB break or watch point ID.
     MIuint m_nMiId;           // Emulated GDB-MI break point ID.
@@ -126,10 +127,10 @@ public:
     CMIUtilString m_strOptThrdGrp;  // Thread group number.
     MIuint m_nTimes;                // The count of the breakpoint existence.
     CMIUtilString m_strOrigLoc;     // The name of the break point.
-    bool m_watchPtVariable;         // Whether the watchpoint is set on var.
-    CMIUtilString m_watchPtExpr;    // The expression of the watch point.
-    bool m_watchPtRead;             // Whether the wpt is triggered on read.
-    bool m_watchPtWrite;            // Whether the wpt is triggered on write.
+    bool m_watchpointVariable;      // Whether the watchpoint is set on var.
+    CMIUtilString m_watchpointExpr; // The expression of the watch point.
+    bool m_watchpointRead;          // Whether the wpt is triggered on read.
+    bool m_watchpointWrite;         // Whether the wpt is triggered on write.
     bool m_bPending;  // True = the breakpoint has not been established yet,
                       // false = location found
     MIuint m_nIgnore; // The number of time the breakpoint is run over before it
@@ -137,10 +138,11 @@ public:
     bool m_bCondition; // True = break point is conditional, use condition
                        // expression, false = no condition
     CMIUtilString m_strCondition; // Break point condition expression
-    bool m_bBrkPtThreadId; // True = break point is specified to work with a
-                           // specific thread, false = no specified thread given
-    MIuint
-        m_nBrkPtThreadId; // Restrict the breakpoint to the specified thread-id
+    bool m_bBreakpointThreadId; // True = break point is specified to work with
+                                // a specific thread, false = no specified
+                                // thread given
+    MIuint m_nBreakpointThreadId; // Restrict the breakpoint to the specified
+                                  // thread-id
   };
 
   // Typedefs:
@@ -180,24 +182,24 @@ public:
                                   CMICmnMIValueList &vwrMiValueList,
                                   const MIuint vnMaxDepth = 10,
                                   const bool vbMarkArgs = false);
-  void MIResponseFormStopPtFrameInfo(const SStopPtInfo &vrStopPtInfo,
-                                     CMICmnMIValueTuple &vwrMiValueTuple);
-  bool MIResponseFormBrkPtInfo(const SStopPtInfo &vrStopPtInfo,
-                               CMICmnMIValueTuple &vwrMiValueTuple);
-  void MIResponseFormWatchPtInfo(const SStopPtInfo &vrStopPtInfo,
-                                 CMICmnMIValueResult &vwrMiValueResult);
+  void MIResponseFormStoppointFrameInfo(const SStoppointInfo &vrStoppointInfo,
+                                        CMICmnMIValueTuple &vwrMiValueTuple);
+  bool MIResponseFormBreakpointInfo(const SStoppointInfo &vrStoppointInfo,
+                                    CMICmnMIValueTuple &vwrMiValueTuple);
+  void MIResponseFormWatchpointInfo(const SStoppointInfo &vrStoppointInfo,
+                                    CMICmnMIValueResult &vwrMiValueResult);
   template <class T, class = std::enable_if_t<
                          std::is_same<T, lldb::SBBreakpoint>::value ||
                          std::is_same<T, lldb::SBWatchpoint>::value>>
-  bool GetStopPtInfo(const T &vrStopPt, SStopPtInfo &vrwStopPtInfo);
-  bool RecordStopPtInfo(const SStopPtInfo &vrStopPtInfo);
-  bool RecordStopPtInfoGet(const MIuint vnMiStopPtId,
-                           SStopPtInfo &vrwStopPtInfo) const;
-  bool RecordStopPtInfoDelete(const MIuint vnMiStopPtId);
-  MIuint GetOrCreateMiStopPtId(const MIuint vnLldbStopPtId,
-                               const StoppointType_e veStopPtType);
-  bool RemoveLldbToMiStopPtIdMapping(const MIuint vnLldbStopPtId,
-                                     const StoppointType_e veStopPtType);
+  bool GetStoppointInfo(const T &vrStoppoint, SStoppointInfo &vrwStoppointInfo);
+  bool RecordStoppointInfo(const SStoppointInfo &vrStoppointInfo);
+  bool RecordStoppointInfoGet(const MIuint vnMiStoppointId,
+                              SStoppointInfo &vrwStoppointInfo) const;
+  bool RecordStoppointInfoDelete(const MIuint vnMiStoppointId);
+  MIuint GetOrCreateMiStoppointId(const MIuint vnLldbStoppointId,
+                                  const StoppointType_e veStoppointType);
+  bool RemoveLldbToMiStoppointIdMapping(const MIuint vnLldbStoppointId,
+                                        const StoppointType_e veStoppointType);
   CMIUtilThreadMutex &GetSessionMutex() { return m_sessionMutex; }
   lldb::SBDebugger &GetDebugger() const;
   lldb::SBListener &GetListener() const;
@@ -210,7 +212,7 @@ public:
   // Attributes:
 public:
   // The following are available to all command instances
-  const MIuint m_nBrkPointCntMax;
+  const MIuint m_nBreakpointCntMax;
   VecActiveThreadId_t m_vecActiveThreadId;
   lldb::tid_t m_currentSelectedThread;
 
@@ -226,10 +228,11 @@ public:
   // Typedefs:
 private:
   typedef std::vector<CMICmnLLDBDebugSessionInfoVarObj> VecVarObj_t;
-  typedef std::map<MIuint, SStopPtInfo> MapMiStopPtIdToStopPtInfo_t;
-  typedef std::pair<MIuint, SStopPtInfo> MapPairMiStopPtIdToStopPtInfo_t;
+  typedef std::map<MIuint, SStoppointInfo> MapMiStoppointIdToStoppointInfo_t;
+  typedef std::pair<MIuint, SStoppointInfo>
+      MapPairMiStoppointIdToStoppointInfo_t;
   typedef std::map<std::pair<MIuint, StoppointType_e>, MIuint>
-      MapLldbStopPtIdToMiStopPtId_t;
+      MapLldbStoppointIdToMiStoppointId_t;
 
   // Methods:
 private:
@@ -263,11 +266,11 @@ private:
                                               // data available across all
                                               // commands
   VecVarObj_t m_vecVarObj; // Vector of session variable objects
-  MapMiStopPtIdToStopPtInfo_t m_mapMiStopPtIdToStopPtInfo;
+  MapMiStoppointIdToStoppointInfo_t m_mapMiStoppointIdToStoppointInfo;
   CMIUtilThreadMutex m_sessionMutex;
-  MapLldbStopPtIdToMiStopPtId_t m_mapLldbStopPtIdToMiStopPtId;
-  MIuint m_nNextMiStopPtId;
-  std::mutex m_miStopPtIdsMutex;
+  MapLldbStoppointIdToMiStoppointId_t m_mapLldbStoppointIdToMiStoppointId;
+  MIuint m_nNextMiStoppointId;
+  std::mutex m_miStoppointIdsMutex;
 
   bool m_bCreateTty; // Created inferiors should launch with new TTYs
 };
