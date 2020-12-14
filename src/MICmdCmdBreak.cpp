@@ -41,13 +41,16 @@
 // Throws:  None.
 //--
 CMICmdCmdBreakInsert::CMICmdCmdBreakInsert()
-    : m_bBrkPtIsTemp(false), m_bBrkPtIsPending(false), m_nBrkPtIgnoreCount(0),
-      m_bBrkPtEnabled(false), m_bBrkPtCondition(false), m_bBrkPtThreadId(false),
-      m_nBrkPtThreadId(0), m_constStrArgNamedTempBrkPt("t"),
-      m_constStrArgNamedHWBrkPt("h"), m_constStrArgNamedPendinfBrkPt("f"),
-      m_constStrArgNamedDisableBrkPt("d"), m_constStrArgNamedTracePt("a"),
-      m_constStrArgNamedConditionalBrkPt("c"), m_constStrArgNamedInoreCnt("i"),
-      m_constStrArgNamedRestrictBrkPtToThreadId("p"),
+    : m_bBreakpointIsTemp(false), m_bBreakpointIsPending(false),
+      m_nBreakpointIgnoreCount(0), m_bBreakpointEnabled(false),
+      m_bBreakpointCondition(false), m_bBreakpointThreadId(false),
+      m_nBreakpointThreadId(0), m_constStrArgNamedTempBreakpoint("t"),
+      m_constStrArgNamedHWBreakpoint("h"),
+      m_constStrArgNamedPendinfBreakpoint("f"),
+      m_constStrArgNamedDisableBreakpoint("d"), m_constStrArgNamedTracePt("a"),
+      m_constStrArgNamedConditionalBreakpoint("c"),
+      m_constStrArgNamedInoreCnt("i"),
+      m_constStrArgNamedRestrictBreakpointToThreadId("p"),
       m_constStrArgNamedLocation("location") {
   // Command factory matches this name with that received from the stdin stream
   m_strMiCmd = "break-insert";
@@ -76,24 +79,24 @@ CMICmdCmdBreakInsert::~CMICmdCmdBreakInsert() {}
 // Throws:  None.
 //--
 bool CMICmdCmdBreakInsert::ParseArgs() {
-  m_setCmdArgs.Add(
-      new CMICmdArgValOptionShort(m_constStrArgNamedTempBrkPt, false, true));
+  m_setCmdArgs.Add(new CMICmdArgValOptionShort(m_constStrArgNamedTempBreakpoint,
+                                               false, true));
   // Not implemented m_setCmdArgs.Add(new CMICmdArgValOptionShort(
-  // m_constStrArgNamedHWBrkPt, false, false));
-  m_setCmdArgs.Add(
-      new CMICmdArgValOptionShort(m_constStrArgNamedPendinfBrkPt, false, true));
-  m_setCmdArgs.Add(new CMICmdArgValOptionShort(m_constStrArgNamedDisableBrkPt,
-                                               false, false));
+  // m_constStrArgNamedHWBreakpoint, false, false));
+  m_setCmdArgs.Add(new CMICmdArgValOptionShort(
+      m_constStrArgNamedPendinfBreakpoint, false, true));
+  m_setCmdArgs.Add(new CMICmdArgValOptionShort(
+      m_constStrArgNamedDisableBreakpoint, false, false));
   // Not implemented m_setCmdArgs.Add(new CMICmdArgValOptionShort(
   // m_constStrArgNamedTracePt, false, false));
   m_setCmdArgs.Add(new CMICmdArgValOptionShort(
-      m_constStrArgNamedConditionalBrkPt, false, true,
+      m_constStrArgNamedConditionalBreakpoint, false, true,
       CMICmdArgValListBase::eArgValType_StringQuoted, 1));
   m_setCmdArgs.Add(
       new CMICmdArgValOptionShort(m_constStrArgNamedInoreCnt, false, true,
                                   CMICmdArgValListBase::eArgValType_Number, 1));
   m_setCmdArgs.Add(new CMICmdArgValOptionShort(
-      m_constStrArgNamedRestrictBrkPtToThreadId, false, true,
+      m_constStrArgNamedRestrictBreakpointToThreadId, false, true,
       CMICmdArgValListBase::eArgValType_Number, 1));
   m_setCmdArgs.Add(new CMICmdArgValString(m_constStrArgNamedLocation, false,
                                           true, false, false, true));
@@ -129,26 +132,27 @@ static size_t findFileSeparatorPos(const std::string &x) {
 // Throws:  None.
 //--
 bool CMICmdCmdBreakInsert::Execute() {
-  CMICMDBASE_GETOPTION(pArgTempBrkPt, OptionShort, m_constStrArgNamedTempBrkPt);
+  CMICMDBASE_GETOPTION(pArgTempBreakpoint, OptionShort,
+                       m_constStrArgNamedTempBreakpoint);
   CMICMDBASE_GETOPTION(pArgThreadGroup, OptionLong, m_constStrArgThreadGroup);
   CMICMDBASE_GETOPTION(pArgLocation, String, m_constStrArgNamedLocation);
   CMICMDBASE_GETOPTION(pArgIgnoreCnt, OptionShort, m_constStrArgNamedInoreCnt);
-  CMICMDBASE_GETOPTION(pArgPendingBrkPt, OptionShort,
-                       m_constStrArgNamedPendinfBrkPt);
-  CMICMDBASE_GETOPTION(pArgDisableBrkPt, OptionShort,
-                       m_constStrArgNamedDisableBrkPt);
-  CMICMDBASE_GETOPTION(pArgConditionalBrkPt, OptionShort,
-                       m_constStrArgNamedConditionalBrkPt);
-  CMICMDBASE_GETOPTION(pArgRestrictBrkPtToThreadId, OptionShort,
-                       m_constStrArgNamedRestrictBrkPtToThreadId);
+  CMICMDBASE_GETOPTION(pArgPendingBreakpoint, OptionShort,
+                       m_constStrArgNamedPendinfBreakpoint);
+  CMICMDBASE_GETOPTION(pArgDisableBreakpoint, OptionShort,
+                       m_constStrArgNamedDisableBreakpoint);
+  CMICMDBASE_GETOPTION(pArgConditionalBreakpoint, OptionShort,
+                       m_constStrArgNamedConditionalBreakpoint);
+  CMICMDBASE_GETOPTION(pArgRestrictBreakpointToThreadId, OptionShort,
+                       m_constStrArgNamedRestrictBreakpointToThreadId);
 
   // Ask LLDB for the target to check if we have valid or dummy one.
   CMICmnLLDBDebugSessionInfo &rSessionInfo(
       CMICmnLLDBDebugSessionInfo::Instance());
   lldb::SBTarget sbTarget = rSessionInfo.GetTarget();
 
-  m_bBrkPtEnabled = !pArgDisableBrkPt->GetFound();
-  m_bBrkPtIsTemp = pArgTempBrkPt->GetFound();
+  m_bBreakpointEnabled = !pArgDisableBreakpoint->GetFound();
+  m_bBreakpointIsTemp = pArgTempBreakpoint->GetFound();
   m_bHaveArgOptionThreadGrp = pArgThreadGroup->GetFound();
   if (m_bHaveArgOptionThreadGrp) {
     MIuint nThreadGrp = 0;
@@ -158,41 +162,42 @@ bool CMICmdCmdBreakInsert::Execute() {
   }
 
   if (sbTarget == rSessionInfo.GetDebugger().GetDummyTarget())
-    m_bBrkPtIsPending = true;
+    m_bBreakpointIsPending = true;
   else {
-    m_bBrkPtIsPending = pArgPendingBrkPt->GetFound();
-    if (!m_bBrkPtIsPending) {
+    m_bBreakpointIsPending = pArgPendingBreakpoint->GetFound();
+    if (!m_bBreakpointIsPending) {
       CMIUtilString pending;
       if (m_rLLDBDebugSessionInfo.SharedDataRetrieve("breakpoint.pending",
                                                      pending)) {
-        m_bBrkPtIsPending = pending == "on";
+        m_bBreakpointIsPending = pending == "on";
       }
     }
   }
 
   if (pArgLocation->GetFound())
     m_brkName = pArgLocation->GetValue();
-  else if (m_bBrkPtIsPending) {
-    pArgPendingBrkPt->GetExpectedOption<CMICmdArgValString, CMIUtilString>(
+  else if (m_bBreakpointIsPending) {
+    pArgPendingBreakpoint->GetExpectedOption<CMICmdArgValString, CMIUtilString>(
         m_brkName);
   }
   if (pArgIgnoreCnt->GetFound()) {
     pArgIgnoreCnt->GetExpectedOption<CMICmdArgValNumber, MIuint>(
-        m_nBrkPtIgnoreCount);
+        m_nBreakpointIgnoreCount);
   }
-  m_bBrkPtCondition = pArgConditionalBrkPt->GetFound();
-  if (m_bBrkPtCondition) {
-    pArgConditionalBrkPt->GetExpectedOption<CMICmdArgValString, CMIUtilString>(
-        m_brkPtCondition);
+  m_bBreakpointCondition = pArgConditionalBreakpoint->GetFound();
+  if (m_bBreakpointCondition) {
+    pArgConditionalBreakpoint
+        ->GetExpectedOption<CMICmdArgValString, CMIUtilString>(
+            m_breakpointCondition);
   }
-  m_bBrkPtThreadId = pArgRestrictBrkPtToThreadId->GetFound();
-  if (m_bBrkPtCondition) {
-    pArgRestrictBrkPtToThreadId->GetExpectedOption<CMICmdArgValNumber, MIuint>(
-        m_nBrkPtThreadId);
+  m_bBreakpointThreadId = pArgRestrictBreakpointToThreadId->GetFound();
+  if (m_bBreakpointCondition) {
+    pArgRestrictBreakpointToThreadId
+        ->GetExpectedOption<CMICmdArgValNumber, MIuint>(m_nBreakpointThreadId);
   }
 
   // Determine if break on a file line or at a function
-  BreakPoint_e eBrkPtType = eBreakPoint_NotDefineYet;
+  BreakPoint_e eBreakpointType = eBreakPoint_NotDefineYet;
   CMIUtilString fileName;
   MIuint nFileLine = 0;
   CMIUtilString strFileFn;
@@ -207,55 +212,56 @@ bool CMICmdCmdBreakInsert::Execute() {
         m_brkName.substr(nPosColon + 1, m_brkName.size() - nPosColon - 1);
 
     if (rStrLineOrFn.empty())
-      eBrkPtType = eBreakPoint_ByName;
+      eBreakpointType = eBreakPoint_ByName;
     else {
       MIint64 nValue = 0;
       if (rStrLineOrFn.ExtractNumber(nValue)) {
         nFileLine = static_cast<MIuint>(nValue);
-        eBrkPtType = eBreakPoint_ByFileLine;
+        eBreakpointType = eBreakPoint_ByFileLine;
       } else {
         strFileFn = rStrLineOrFn;
-        eBrkPtType = eBreakPoint_ByFileFn;
+        eBreakpointType = eBreakPoint_ByFileFn;
       }
     }
   }
 
   // Determine if break defined as an address
   lldb::addr_t nAddress = 0;
-  if (eBrkPtType == eBreakPoint_NotDefineYet) {
+  if (eBreakpointType == eBreakPoint_NotDefineYet) {
     if (!m_brkName.empty() && m_brkName[0] == '*') {
       MIint64 nValue = 0;
       if (CMIUtilString(m_brkName.substr(1)).ExtractNumber(nValue)) {
         nAddress = static_cast<lldb::addr_t>(nValue);
-        eBrkPtType = eBreakPoint_ByAddress;
+        eBreakpointType = eBreakPoint_ByAddress;
       }
     }
   }
 
   // Break defined as an function
-  if (eBrkPtType == eBreakPoint_NotDefineYet) {
-    eBrkPtType = eBreakPoint_ByName;
+  if (eBreakpointType == eBreakPoint_NotDefineYet) {
+    eBreakpointType = eBreakPoint_ByName;
   }
 
   // Ask LLDB to create a breakpoint
   bool bOk = MIstatus::success;
-  switch (eBrkPtType) {
+  switch (eBreakpointType) {
   case eBreakPoint_ByAddress:
-    m_brkPt = sbTarget.BreakpointCreateByAddress(nAddress);
+    m_breakpoint = sbTarget.BreakpointCreateByAddress(nAddress);
     break;
   case eBreakPoint_ByFileFn: {
     lldb::SBFileSpecList module; // search in all modules
     lldb::SBFileSpecList compUnit;
     compUnit.Append(lldb::SBFileSpec(fileName.c_str()));
-    m_brkPt =
+    m_breakpoint =
         sbTarget.BreakpointCreateByName(strFileFn.c_str(), module, compUnit);
     break;
   }
   case eBreakPoint_ByFileLine:
-    m_brkPt = sbTarget.BreakpointCreateByLocation(fileName.c_str(), nFileLine);
+    m_breakpoint =
+        sbTarget.BreakpointCreateByLocation(fileName.c_str(), nFileLine);
     break;
   case eBreakPoint_ByName:
-    m_brkPt = sbTarget.BreakpointCreateByName(m_brkName.c_str(), nullptr);
+    m_breakpoint = sbTarget.BreakpointCreateByName(m_brkName.c_str(), nullptr);
     break;
   case eBreakPoint_count:
   case eBreakPoint_NotDefineYet:
@@ -265,57 +271,57 @@ bool CMICmdCmdBreakInsert::Execute() {
   }
 
   if (bOk) {
-    if (!m_bBrkPtIsPending && (m_brkPt.GetNumLocations() == 0)) {
-      sbTarget.BreakpointDelete(m_brkPt.GetID());
-      SetError(
-          CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_BRKPT_LOCATION_NOT_FOUND),
-                                m_cmdData.strMiCmd.c_str(), m_brkName.c_str()));
+    if (!m_bBreakpointIsPending && (m_breakpoint.GetNumLocations() == 0)) {
+      sbTarget.BreakpointDelete(m_breakpoint.GetID());
+      SetError(CMIUtilString::Format(
+          MIRSRC(IDS_CMD_ERR_BREAKPOINT_LOCATION_NOT_FOUND),
+          m_cmdData.strMiCmd.c_str(), m_brkName.c_str()));
       return MIstatus::failure;
     }
 
-    m_brkPt.SetEnabled(m_bBrkPtEnabled);
-    m_brkPt.SetIgnoreCount(m_nBrkPtIgnoreCount);
-    m_brkPt.SetOneShot(m_bBrkPtIsTemp);
-    if (m_bBrkPtCondition)
-      m_brkPt.SetCondition(m_brkPtCondition.c_str());
-    if (m_bBrkPtThreadId)
-      m_brkPt.SetThreadID(m_nBrkPtThreadId);
+    m_breakpoint.SetEnabled(m_bBreakpointEnabled);
+    m_breakpoint.SetIgnoreCount(m_nBreakpointIgnoreCount);
+    m_breakpoint.SetOneShot(m_bBreakpointIsTemp);
+    if (m_bBreakpointCondition)
+      m_breakpoint.SetCondition(m_breakpointCondition.c_str());
+    if (m_bBreakpointThreadId)
+      m_breakpoint.SetThreadID(m_nBreakpointThreadId);
   }
 
   // CODETAG_LLDB_BREAKPOINT_CREATION
   // This is in the main thread
   // Record break point information to be by LLDB event handler function
-  CMICmnLLDBDebugSessionInfo::SStopPtInfo sStopPtInfo;
-  if (!rSessionInfo.GetStopPtInfo(m_brkPt, sStopPtInfo))
+  CMICmnLLDBDebugSessionInfo::SStoppointInfo sStoppointInfo;
+  if (!rSessionInfo.GetStoppointInfo(m_breakpoint, sStoppointInfo))
     return MIstatus::failure;
 
-  sStopPtInfo.m_bDisp = m_bBrkPtIsTemp;
-  sStopPtInfo.m_bEnabled = m_bBrkPtEnabled;
-  sStopPtInfo.m_bHaveArgOptionThreadGrp = m_bHaveArgOptionThreadGrp;
-  sStopPtInfo.m_strOptThrdGrp = m_strArgOptionThreadGrp;
-  sStopPtInfo.m_nTimes = m_brkPt.GetHitCount();
-  sStopPtInfo.m_strOrigLoc = m_brkName;
-  sStopPtInfo.m_nIgnore = m_nBrkPtIgnoreCount;
-  sStopPtInfo.m_bPending = m_bBrkPtIsPending;
-  sStopPtInfo.m_bCondition = m_bBrkPtCondition;
-  sStopPtInfo.m_strCondition = m_brkPtCondition;
-  sStopPtInfo.m_bBrkPtThreadId = m_bBrkPtThreadId;
-  sStopPtInfo.m_nBrkPtThreadId = m_nBrkPtThreadId;
+  sStoppointInfo.m_bDisp = m_bBreakpointIsTemp;
+  sStoppointInfo.m_bEnabled = m_bBreakpointEnabled;
+  sStoppointInfo.m_bHaveArgOptionThreadGrp = m_bHaveArgOptionThreadGrp;
+  sStoppointInfo.m_strOptThrdGrp = m_strArgOptionThreadGrp;
+  sStoppointInfo.m_nTimes = m_breakpoint.GetHitCount();
+  sStoppointInfo.m_strOrigLoc = m_brkName;
+  sStoppointInfo.m_nIgnore = m_nBreakpointIgnoreCount;
+  sStoppointInfo.m_bPending = m_bBreakpointIsPending;
+  sStoppointInfo.m_bCondition = m_bBreakpointCondition;
+  sStoppointInfo.m_strCondition = m_breakpointCondition;
+  sStoppointInfo.m_bBreakpointThreadId = m_bBreakpointThreadId;
+  sStoppointInfo.m_nBreakpointThreadId = m_nBreakpointThreadId;
 
-  bOk = bOk && rSessionInfo.RecordStopPtInfo(sStopPtInfo);
+  bOk = bOk && rSessionInfo.RecordStoppointInfo(sStoppointInfo);
   if (!bOk) {
-    SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_STOPPT_INVALID),
+    SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_STOPPOINT_INVALID),
                                    m_cmdData.strMiCmd.c_str(),
                                    m_brkName.c_str()));
     return MIstatus::failure;
   }
 
-  // CODETAG_LLDB_STOPPT_ID_MAX
-  if (sStopPtInfo.m_nMiId > rSessionInfo.m_nBrkPointCntMax) {
+  // CODETAG_LLDB_STOPPOINT_ID_MAX
+  if (sStoppointInfo.m_nMiId > rSessionInfo.m_nBreakpointCntMax) {
     SetError(CMIUtilString::Format(
-        MIRSRC(IDS_CMD_ERR_STOPPT_CNT_EXCEEDED), m_cmdData.strMiCmd.c_str(),
-        static_cast<uint64_t>(rSessionInfo.m_nBrkPointCntMax),
-        static_cast<uint64_t>(sStopPtInfo.m_nMiId)));
+        MIRSRC(IDS_CMD_ERR_STOPPOINT_CNT_EXCEEDED), m_cmdData.strMiCmd.c_str(),
+        static_cast<uint64_t>(rSessionInfo.m_nBreakpointCntMax),
+        static_cast<uint64_t>(sStoppointInfo.m_nMiId)));
     return MIstatus::failure;
   }
 
@@ -337,16 +343,16 @@ bool CMICmdCmdBreakInsert::Acknowledge() {
   CMICmnLLDBDebugSessionInfo &rSessionInfo(
       CMICmnLLDBDebugSessionInfo::Instance());
 
-  MIuint nMiStopPtId =
-      CMICmnLLDBDebugSessionInfo::Instance().GetOrCreateMiStopPtId(
-          m_brkPt.GetID(),
+  MIuint nMiStoppointId =
+      CMICmnLLDBDebugSessionInfo::Instance().GetOrCreateMiStoppointId(
+          m_breakpoint.GetID(),
           CMICmnLLDBDebugSessionInfo::eStoppointType_Breakpoint);
 
-  CMICmnLLDBDebugSessionInfo::SStopPtInfo sStopPtInfo;
-  if (!rSessionInfo.RecordStopPtInfoGet(nMiStopPtId, sStopPtInfo)) {
+  CMICmnLLDBDebugSessionInfo::SStoppointInfo sStoppointInfo;
+  if (!rSessionInfo.RecordStoppointInfoGet(nMiStoppointId, sStoppointInfo)) {
     SetError(CMIUtilString::Format(
-        MIRSRC(IDS_CMD_ERR_STOPPT_INFO_OBJ_NOT_FOUND),
-        m_cmdData.strMiCmd.c_str(), static_cast<uint64_t>(nMiStopPtId)));
+        MIRSRC(IDS_CMD_ERR_STOPPOINT_INFO_OBJ_NOT_FOUND),
+        m_cmdData.strMiCmd.c_str(), static_cast<uint64_t>(nMiStoppointId)));
     return MIstatus::failure;
   }
 
@@ -355,7 +361,7 @@ bool CMICmdCmdBreakInsert::Acknowledge() {
   // PRIx64
   // "\",func=\"%s\",file=\"%s\",fullname=\"%s/%s\",line=\"%d\",thread-groups=[\"%s\"],times=\"%d\",original-location=\"%s\"}"
   CMICmnMIValueTuple miValueTuple;
-  if (!rSessionInfo.MIResponseFormBrkPtInfo(sStopPtInfo, miValueTuple))
+  if (!rSessionInfo.MIResponseFormBreakpointInfo(sStoppointInfo, miValueTuple))
     return MIstatus::failure;
 
   const CMICmnMIValueResult miValueResultD("bkpt", miValueTuple);
@@ -388,7 +394,7 @@ CMICmdBase *CMICmdCmdBreakInsert::CreateSelf() {
 // Throws:  None.
 //--
 CMICmdCmdBreakDelete::CMICmdCmdBreakDelete()
-    : m_constStrArgNamedBrkPt("breakpoint") {
+    : m_constStrArgNamedBreakpoint("breakpoint") {
   // Command factory matches this name with that received from the stdin stream
   m_strMiCmd = "break-delete";
 
@@ -417,7 +423,7 @@ CMICmdCmdBreakDelete::~CMICmdCmdBreakDelete() {}
 //--
 bool CMICmdCmdBreakDelete::ParseArgs() {
   m_setCmdArgs.Add(
-      new CMICmdArgValListOfN(m_constStrArgNamedBrkPt, true, true,
+      new CMICmdArgValListOfN(m_constStrArgNamedBreakpoint, true, true,
                               CMICmdArgValListBase::eArgValType_Number));
   return ParseValidateCmdOptions();
 }
@@ -434,42 +440,43 @@ bool CMICmdCmdBreakDelete::ParseArgs() {
 // Throws:  None.
 //--
 bool CMICmdCmdBreakDelete::Execute() {
-  CMICMDBASE_GETOPTION(pArgBrkPt, ListOfN, m_constStrArgNamedBrkPt);
+  CMICMDBASE_GETOPTION(pArgBreakpoint, ListOfN, m_constStrArgNamedBreakpoint);
 
   // ATM we only handle one break point ID
-  MIuint nMiStopPtId;
-  if (!pArgBrkPt->GetExpectedOption<CMICmdArgValNumber, MIuint>(nMiStopPtId)) {
-    SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_STOPPT_INVALID),
+  MIuint nMiStoppointId;
+  if (!pArgBreakpoint->GetExpectedOption<CMICmdArgValNumber, MIuint>(
+          nMiStoppointId)) {
+    SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_STOPPOINT_INVALID),
                                    m_cmdData.strMiCmd.c_str(),
-                                   m_constStrArgNamedBrkPt.c_str()));
+                                   m_constStrArgNamedBreakpoint.c_str()));
     return MIstatus::failure;
   }
 
   CMICmnLLDBDebugSessionInfo &rSessionInfo(
       CMICmnLLDBDebugSessionInfo::Instance());
 
-  CMICmnLLDBDebugSessionInfo::SStopPtInfo sStopPtInfo;
-  if (!rSessionInfo.RecordStopPtInfoGet(nMiStopPtId, sStopPtInfo)) {
+  CMICmnLLDBDebugSessionInfo::SStoppointInfo sStoppointInfo;
+  if (!rSessionInfo.RecordStoppointInfoGet(nMiStoppointId, sStoppointInfo)) {
     SetError(CMIUtilString::Format(
-        MIRSRC(IDS_CMD_ERR_STOPPT_INFO_OBJ_NOT_FOUND),
-        m_cmdData.strMiCmd.c_str(), static_cast<uint64_t>(nMiStopPtId)));
+        MIRSRC(IDS_CMD_ERR_STOPPOINT_INFO_OBJ_NOT_FOUND),
+        m_cmdData.strMiCmd.c_str(), static_cast<uint64_t>(nMiStoppointId)));
     return MIstatus::failure;
   }
 
   bool bSuccess = false;
   lldb::SBTarget sbTarget = rSessionInfo.GetTarget();
-  if (sStopPtInfo.m_eType ==
+  if (sStoppointInfo.m_eType ==
       CMICmnLLDBDebugSessionInfo::eStoppointType_Breakpoint)
     bSuccess = sbTarget.BreakpointDelete(
-        static_cast<lldb::break_id_t>(sStopPtInfo.m_nLldbId));
+        static_cast<lldb::break_id_t>(sStoppointInfo.m_nLldbId));
   else
     bSuccess = sbTarget.DeleteWatchpoint(
-        static_cast<lldb::watch_id_t>(sStopPtInfo.m_nLldbId));
+        static_cast<lldb::watch_id_t>(sStoppointInfo.m_nLldbId));
 
   if (!bSuccess) {
-    const CMIUtilString strBrkNum(
-        CMIUtilString::Format("%" PRIu64, static_cast<uint64_t>(nMiStopPtId)));
-    SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_STOPPT_INVALID),
+    const CMIUtilString strBrkNum(CMIUtilString::Format(
+        "%" PRIu64, static_cast<uint64_t>(nMiStoppointId)));
+    SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_STOPPOINT_INVALID),
                                    m_cmdData.strMiCmd.c_str(),
                                    strBrkNum.c_str()));
     return MIstatus::failure;
@@ -517,8 +524,8 @@ CMICmdBase *CMICmdCmdBreakDelete::CreateSelf() {
 // Throws:  None.
 //--
 CMICmdCmdBreakDisable::CMICmdCmdBreakDisable()
-    : m_constStrArgNamedBrkPt("breakpoint"), m_bBrkPtDisabledOk(false),
-      m_nMiStopPtId(0) {
+    : m_constStrArgNamedBreakpoint("breakpoint"),
+      m_bBreakpointDisabledOk(false), m_nMiStoppointId(0) {
   // Command factory matches this name with that received from the stdin stream
   m_strMiCmd = "break-disable";
 
@@ -547,7 +554,7 @@ CMICmdCmdBreakDisable::~CMICmdCmdBreakDisable() {}
 //--
 bool CMICmdCmdBreakDisable::ParseArgs() {
   m_setCmdArgs.Add(
-      new CMICmdArgValListOfN(m_constStrArgNamedBrkPt, true, true,
+      new CMICmdArgValListOfN(m_constStrArgNamedBreakpoint, true, true,
                               CMICmdArgValListBase::eArgValType_Number));
   return ParseValidateCmdOptions();
 }
@@ -564,45 +571,46 @@ bool CMICmdCmdBreakDisable::ParseArgs() {
 // Throws:  None.
 //--
 bool CMICmdCmdBreakDisable::Execute() {
-  CMICMDBASE_GETOPTION(pArgBrkPt, ListOfN, m_constStrArgNamedBrkPt);
+  CMICMDBASE_GETOPTION(pArgBreakpoint, ListOfN, m_constStrArgNamedBreakpoint);
 
   // ATM we only handle one break point ID
-  if (!pArgBrkPt->GetExpectedOption<CMICmdArgValNumber, MIuint>(
-          m_nMiStopPtId)) {
-    SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_STOPPT_INVALID),
+  if (!pArgBreakpoint->GetExpectedOption<CMICmdArgValNumber, MIuint>(
+          m_nMiStoppointId)) {
+    SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_STOPPOINT_INVALID),
                                    m_cmdData.strMiCmd.c_str(),
-                                   m_constStrArgNamedBrkPt.c_str()));
+                                   m_constStrArgNamedBreakpoint.c_str()));
     return MIstatus::failure;
   }
 
   CMICmnLLDBDebugSessionInfo &rSessionInfo(
       CMICmnLLDBDebugSessionInfo::Instance());
 
-  CMICmnLLDBDebugSessionInfo::SStopPtInfo sStopPtInfo;
-  if (!rSessionInfo.RecordStopPtInfoGet(m_nMiStopPtId, sStopPtInfo)) {
+  CMICmnLLDBDebugSessionInfo::SStoppointInfo sStoppointInfo;
+  if (!rSessionInfo.RecordStoppointInfoGet(m_nMiStoppointId, sStoppointInfo)) {
     SetError(CMIUtilString::Format(
-        MIRSRC(IDS_CMD_ERR_STOPPT_INFO_OBJ_NOT_FOUND),
-        m_cmdData.strMiCmd.c_str(), static_cast<uint64_t>(m_nMiStopPtId)));
+        MIRSRC(IDS_CMD_ERR_STOPPOINT_INFO_OBJ_NOT_FOUND),
+        m_cmdData.strMiCmd.c_str(), static_cast<uint64_t>(m_nMiStoppointId)));
     return MIstatus::failure;
   }
 
-  auto disable = [&m_bBrkPtDisabledOk = m_bBrkPtDisabledOk](auto &vrPt) {
+  auto disable = [&m_bBreakpointDisabledOk =
+                      m_bBreakpointDisabledOk](auto &vrPt) {
     if (vrPt.IsValid()) {
-      m_bBrkPtDisabledOk = true;
+      m_bBreakpointDisabledOk = true;
       vrPt.SetEnabled(false);
     }
   };
 
   lldb::SBTarget sbTarget = rSessionInfo.GetTarget();
-  if (sStopPtInfo.m_eType ==
+  if (sStoppointInfo.m_eType ==
       CMICmnLLDBDebugSessionInfo::eStoppointType_Breakpoint) {
-    lldb::SBBreakpoint brkPt = sbTarget.FindBreakpointByID(
-        static_cast<lldb::break_id_t>(sStopPtInfo.m_nLldbId));
-    disable(brkPt);
+    lldb::SBBreakpoint breakpoint = sbTarget.FindBreakpointByID(
+        static_cast<lldb::break_id_t>(sStoppointInfo.m_nLldbId));
+    disable(breakpoint);
   } else {
-    lldb::SBWatchpoint watchPt = sbTarget.FindWatchpointByID(
-        static_cast<lldb::watch_id_t>(sStopPtInfo.m_nLldbId));
-    disable(watchPt);
+    lldb::SBWatchpoint watchpoint = sbTarget.FindWatchpointByID(
+        static_cast<lldb::watch_id_t>(sStoppointInfo.m_nLldbId));
+    disable(watchpoint);
   }
 
   return MIstatus::success;
@@ -619,17 +627,17 @@ bool CMICmdCmdBreakDisable::Execute() {
 // Throws:  None.
 //--
 bool CMICmdCmdBreakDisable::Acknowledge() {
-  if (m_bBrkPtDisabledOk) {
+  if (m_bBreakpointDisabledOk) {
     const CMICmnMIResultRecord miRecordResult(
         m_cmdData.strMiCmdToken, CMICmnMIResultRecord::eResultClass_Done);
     m_miResultRecord = miRecordResult;
     return MIstatus::success;
   }
 
-  const CMIUtilString strBrkPtId(
-      CMIUtilString::Format("%" PRIu64, static_cast<uint64_t>(m_nMiStopPtId)));
+  const CMIUtilString strBreakpointId(CMIUtilString::Format(
+      "%" PRIu64, static_cast<uint64_t>(m_nMiStoppointId)));
   const CMICmnMIValueConst miValueConst(CMIUtilString::Format(
-      MIRSRC(IDS_CMD_ERR_STOPPT_INVALID), strBrkPtId.c_str()));
+      MIRSRC(IDS_CMD_ERR_STOPPOINT_INVALID), strBreakpointId.c_str()));
   const CMICmnMIValueResult miValueResult("msg", miValueConst);
   const CMICmnMIResultRecord miRecordResult(
       m_cmdData.strMiCmdToken, CMICmnMIResultRecord::eResultClass_Error,
@@ -660,8 +668,8 @@ CMICmdBase *CMICmdCmdBreakDisable::CreateSelf() {
 // Throws:  None.
 //--
 CMICmdCmdBreakEnable::CMICmdCmdBreakEnable()
-    : m_constStrArgNamedBrkPt("breakpoint"), m_bBrkPtEnabledOk(false),
-      m_nMiStopPtId(0) {
+    : m_constStrArgNamedBreakpoint("breakpoint"), m_bBreakpointEnabledOk(false),
+      m_nMiStoppointId(0) {
   // Command factory matches this name with that received from the stdin stream
   m_strMiCmd = "break-enable";
 
@@ -690,7 +698,7 @@ CMICmdCmdBreakEnable::~CMICmdCmdBreakEnable() {}
 //--
 bool CMICmdCmdBreakEnable::ParseArgs() {
   m_setCmdArgs.Add(
-      new CMICmdArgValListOfN(m_constStrArgNamedBrkPt, true, true,
+      new CMICmdArgValListOfN(m_constStrArgNamedBreakpoint, true, true,
                               CMICmdArgValListBase::eArgValType_Number));
   return ParseValidateCmdOptions();
 }
@@ -707,45 +715,45 @@ bool CMICmdCmdBreakEnable::ParseArgs() {
 // Throws:  None.
 //--
 bool CMICmdCmdBreakEnable::Execute() {
-  CMICMDBASE_GETOPTION(pArgBrkPt, ListOfN, m_constStrArgNamedBrkPt);
+  CMICMDBASE_GETOPTION(pArgBreakpoint, ListOfN, m_constStrArgNamedBreakpoint);
 
   // ATM we only handle one break point ID
-  if (!pArgBrkPt->GetExpectedOption<CMICmdArgValNumber, MIuint>(
-          m_nMiStopPtId)) {
-    SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_STOPPT_INVALID),
+  if (!pArgBreakpoint->GetExpectedOption<CMICmdArgValNumber, MIuint>(
+          m_nMiStoppointId)) {
+    SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_STOPPOINT_INVALID),
                                    m_cmdData.strMiCmd.c_str(),
-                                   m_constStrArgNamedBrkPt.c_str()));
+                                   m_constStrArgNamedBreakpoint.c_str()));
     return MIstatus::failure;
   }
 
   CMICmnLLDBDebugSessionInfo &rSessionInfo(
       CMICmnLLDBDebugSessionInfo::Instance());
 
-  CMICmnLLDBDebugSessionInfo::SStopPtInfo sStopPtInfo;
-  if (!rSessionInfo.RecordStopPtInfoGet(m_nMiStopPtId, sStopPtInfo)) {
+  CMICmnLLDBDebugSessionInfo::SStoppointInfo sStoppointInfo;
+  if (!rSessionInfo.RecordStoppointInfoGet(m_nMiStoppointId, sStoppointInfo)) {
     SetError(CMIUtilString::Format(
-        MIRSRC(IDS_CMD_ERR_STOPPT_INFO_OBJ_NOT_FOUND),
-        m_cmdData.strMiCmd.c_str(), static_cast<uint64_t>(m_nMiStopPtId)));
+        MIRSRC(IDS_CMD_ERR_STOPPOINT_INFO_OBJ_NOT_FOUND),
+        m_cmdData.strMiCmd.c_str(), static_cast<uint64_t>(m_nMiStoppointId)));
     return MIstatus::failure;
   }
 
-  auto enable = [&m_bBrkPtEnabledOk = m_bBrkPtEnabledOk](auto &vrPt) {
+  auto enable = [&m_bBreakpointEnabledOk = m_bBreakpointEnabledOk](auto &vrPt) {
     if (vrPt.IsValid()) {
-      m_bBrkPtEnabledOk = true;
+      m_bBreakpointEnabledOk = true;
       vrPt.SetEnabled(true);
     }
   };
 
   lldb::SBTarget sbTarget = rSessionInfo.GetTarget();
-  if (sStopPtInfo.m_eType ==
+  if (sStoppointInfo.m_eType ==
       CMICmnLLDBDebugSessionInfo::eStoppointType_Breakpoint) {
-    lldb::SBBreakpoint brkPt = sbTarget.FindBreakpointByID(
-        static_cast<lldb::break_id_t>(sStopPtInfo.m_nLldbId));
-    enable(brkPt);
+    lldb::SBBreakpoint breakpoint = sbTarget.FindBreakpointByID(
+        static_cast<lldb::break_id_t>(sStoppointInfo.m_nLldbId));
+    enable(breakpoint);
   } else {
-    lldb::SBWatchpoint watchPt = sbTarget.FindWatchpointByID(
-        static_cast<lldb::watch_id_t>(sStopPtInfo.m_nLldbId));
-    enable(watchPt);
+    lldb::SBWatchpoint watchpoint = sbTarget.FindWatchpointByID(
+        static_cast<lldb::watch_id_t>(sStoppointInfo.m_nLldbId));
+    enable(watchpoint);
   }
 
   return MIstatus::success;
@@ -762,17 +770,17 @@ bool CMICmdCmdBreakEnable::Execute() {
 // Throws:  None.
 //--
 bool CMICmdCmdBreakEnable::Acknowledge() {
-  if (m_bBrkPtEnabledOk) {
+  if (m_bBreakpointEnabledOk) {
     const CMICmnMIResultRecord miRecordResult(
         m_cmdData.strMiCmdToken, CMICmnMIResultRecord::eResultClass_Done);
     m_miResultRecord = miRecordResult;
     return MIstatus::success;
   }
 
-  const CMIUtilString strBrkPtId(
-      CMIUtilString::Format("%" PRIu64, static_cast<uint64_t>(m_nMiStopPtId)));
+  const CMIUtilString strBreakpointId(CMIUtilString::Format(
+      "%" PRIu64, static_cast<uint64_t>(m_nMiStoppointId)));
   const CMICmnMIValueConst miValueConst(CMIUtilString::Format(
-      MIRSRC(IDS_CMD_ERR_STOPPT_INVALID), strBrkPtId.c_str()));
+      MIRSRC(IDS_CMD_ERR_STOPPOINT_INVALID), strBreakpointId.c_str()));
   const CMICmnMIValueResult miValueResult("msg", miValueConst);
   const CMICmnMIResultRecord miRecordResult(
       m_cmdData.strMiCmdToken, CMICmnMIResultRecord::eResultClass_Error,
@@ -804,7 +812,7 @@ CMICmdBase *CMICmdCmdBreakEnable::CreateSelf() {
 //--
 CMICmdCmdBreakAfter::CMICmdCmdBreakAfter()
     : m_constStrArgNamedNumber("number"), m_constStrArgNamedCount("count"),
-      m_nMiStopPtId(0), m_nBrkPtCount(0) {
+      m_nMiStoppointId(0), m_nBreakpointCount(0) {
   // Command factory matches this name with that received from the stdin stream
   m_strMiCmd = "break-after";
 
@@ -853,31 +861,31 @@ bool CMICmdCmdBreakAfter::Execute() {
   CMICMDBASE_GETOPTION(pArgNumber, Number, m_constStrArgNamedNumber);
   CMICMDBASE_GETOPTION(pArgCount, Number, m_constStrArgNamedCount);
 
-  m_nMiStopPtId = static_cast<MIuint>(pArgNumber->GetValue());
-  m_nBrkPtCount = pArgCount->GetValue();
+  m_nMiStoppointId = static_cast<MIuint>(pArgNumber->GetValue());
+  m_nBreakpointCount = pArgCount->GetValue();
 
   CMICmnLLDBDebugSessionInfo &rSessionInfo(
       CMICmnLLDBDebugSessionInfo::Instance());
 
-  CMICmnLLDBDebugSessionInfo::SStopPtInfo sStopPtInfo;
-  if (!rSessionInfo.RecordStopPtInfoGet(m_nMiStopPtId, sStopPtInfo)) {
+  CMICmnLLDBDebugSessionInfo::SStoppointInfo sStoppointInfo;
+  if (!rSessionInfo.RecordStoppointInfoGet(m_nMiStoppointId, sStoppointInfo)) {
     SetError(CMIUtilString::Format(
-        MIRSRC(IDS_CMD_ERR_STOPPT_INFO_OBJ_NOT_FOUND),
-        m_cmdData.strMiCmd.c_str(), static_cast<uint64_t>(m_nMiStopPtId)));
+        MIRSRC(IDS_CMD_ERR_STOPPOINT_INFO_OBJ_NOT_FOUND),
+        m_cmdData.strMiCmd.c_str(), static_cast<uint64_t>(m_nMiStoppointId)));
     return MIstatus::failure;
   }
 
   lldb::SBTarget sbTarget = rSessionInfo.GetTarget();
-  if (sStopPtInfo.m_eType ==
+  if (sStoppointInfo.m_eType ==
       CMICmnLLDBDebugSessionInfo::eStoppointType_Breakpoint) {
-    lldb::SBBreakpoint brkPt = sbTarget.FindBreakpointByID(
-        static_cast<lldb::break_id_t>(sStopPtInfo.m_nLldbId));
-    return SetIgnoreCount(rSessionInfo, brkPt);
+    lldb::SBBreakpoint breakpoint = sbTarget.FindBreakpointByID(
+        static_cast<lldb::break_id_t>(sStoppointInfo.m_nLldbId));
+    return SetIgnoreCount(rSessionInfo, breakpoint);
   }
 
-  lldb::SBWatchpoint watchPt = sbTarget.FindWatchpointByID(
-      static_cast<lldb::watch_id_t>(sStopPtInfo.m_nLldbId));
-  return SetIgnoreCount(rSessionInfo, watchPt);
+  lldb::SBWatchpoint watchpoint = sbTarget.FindWatchpointByID(
+      static_cast<lldb::watch_id_t>(sStoppointInfo.m_nLldbId));
+  return SetIgnoreCount(rSessionInfo, watchpoint);
 }
 
 //++
@@ -920,17 +928,17 @@ CMICmdBase *CMICmdCmdBreakAfter::CreateSelf() {
 //          MIstatus::failure - Functional failed.
 // Throws:  None.
 //--
-bool CMICmdCmdBreakAfter::UpdateStopPtInfo(
+bool CMICmdCmdBreakAfter::UpdateStoppointInfo(
     CMICmnLLDBDebugSessionInfo &rSessionInfo) {
-  CMICmnLLDBDebugSessionInfo::SStopPtInfo sStopPtInfo;
-  if (!rSessionInfo.RecordStopPtInfoGet(m_nMiStopPtId, sStopPtInfo)) {
+  CMICmnLLDBDebugSessionInfo::SStoppointInfo sStoppointInfo;
+  if (!rSessionInfo.RecordStoppointInfoGet(m_nMiStoppointId, sStoppointInfo)) {
     SetError(CMIUtilString::Format(
-        MIRSRC(IDS_CMD_ERR_STOPPT_INFO_OBJ_NOT_FOUND),
-        m_cmdData.strMiCmd.c_str(), static_cast<uint64_t>(m_nMiStopPtId)));
+        MIRSRC(IDS_CMD_ERR_STOPPOINT_INFO_OBJ_NOT_FOUND),
+        m_cmdData.strMiCmd.c_str(), static_cast<uint64_t>(m_nMiStoppointId)));
     return MIstatus::failure;
   }
-  sStopPtInfo.m_nIgnore = m_nBrkPtCount;
-  return rSessionInfo.RecordStopPtInfo(sStopPtInfo);
+  sStoppointInfo.m_nIgnore = m_nBreakpointCount;
+  return rSessionInfo.RecordStoppointInfo(sStoppointInfo);
 }
 
 //++
@@ -947,7 +955,7 @@ CMICmdCmdBreakCondition::CMICmdCmdBreakCondition()
                                                // need to handle expressions not
                                                // surrounded by quotes
       ,
-      m_nMiStopPtId(0) {
+      m_nMiStoppointId(0) {
   // Command factory matches this name with that received from the stdin stream
   m_strMiCmd = "break-condition";
 
@@ -1000,32 +1008,32 @@ bool CMICmdCmdBreakCondition::Execute() {
   CMICMDBASE_GETOPTION(pArgNumber, Number, m_constStrArgNamedNumber);
   CMICMDBASE_GETOPTION(pArgExpr, String, m_constStrArgNamedExpr);
 
-  m_nMiStopPtId = static_cast<MIuint>(pArgNumber->GetValue());
-  m_strBrkPtExpr = pArgExpr->GetValue();
-  m_strBrkPtExpr += GetRestOfExpressionNotSurroundedInQuotes();
+  m_nMiStoppointId = static_cast<MIuint>(pArgNumber->GetValue());
+  m_strBreakpointExpr = pArgExpr->GetValue();
+  m_strBreakpointExpr += GetRestOfExpressionNotSurroundedInQuotes();
 
   CMICmnLLDBDebugSessionInfo &rSessionInfo(
       CMICmnLLDBDebugSessionInfo::Instance());
 
-  CMICmnLLDBDebugSessionInfo::SStopPtInfo sStopPtInfo;
-  if (!rSessionInfo.RecordStopPtInfoGet(m_nMiStopPtId, sStopPtInfo)) {
+  CMICmnLLDBDebugSessionInfo::SStoppointInfo sStoppointInfo;
+  if (!rSessionInfo.RecordStoppointInfoGet(m_nMiStoppointId, sStoppointInfo)) {
     SetError(CMIUtilString::Format(
-        MIRSRC(IDS_CMD_ERR_STOPPT_INFO_OBJ_NOT_FOUND),
-        m_cmdData.strMiCmd.c_str(), static_cast<uint64_t>(m_nMiStopPtId)));
+        MIRSRC(IDS_CMD_ERR_STOPPOINT_INFO_OBJ_NOT_FOUND),
+        m_cmdData.strMiCmd.c_str(), static_cast<uint64_t>(m_nMiStoppointId)));
     return MIstatus::failure;
   }
 
   lldb::SBTarget sbTarget = rSessionInfo.GetTarget();
-  if (sStopPtInfo.m_eType ==
+  if (sStoppointInfo.m_eType ==
       CMICmnLLDBDebugSessionInfo::eStoppointType_Breakpoint) {
-    lldb::SBBreakpoint brkPt = sbTarget.FindBreakpointByID(
-        static_cast<lldb::break_id_t>(sStopPtInfo.m_nLldbId));
-    return SetCondition(rSessionInfo, brkPt);
+    lldb::SBBreakpoint breakpoint = sbTarget.FindBreakpointByID(
+        static_cast<lldb::break_id_t>(sStoppointInfo.m_nLldbId));
+    return SetCondition(rSessionInfo, breakpoint);
   }
 
-  lldb::SBWatchpoint watchPt = sbTarget.FindWatchpointByID(
-      static_cast<lldb::watch_id_t>(sStopPtInfo.m_nLldbId));
-  return SetCondition(rSessionInfo, watchPt);
+  lldb::SBWatchpoint watchpoint = sbTarget.FindWatchpointByID(
+      static_cast<lldb::watch_id_t>(sStoppointInfo.m_nLldbId));
+  return SetCondition(rSessionInfo, watchpoint);
 }
 
 //++
@@ -1118,17 +1126,17 @@ CMICmdCmdBreakCondition::GetRestOfExpressionNotSurroundedInQuotes() {
 //          MIstatus::failure - Functional failed.
 // Throws:  None.
 //--
-bool CMICmdCmdBreakCondition::UpdateStopPtInfo(
+bool CMICmdCmdBreakCondition::UpdateStoppointInfo(
     CMICmnLLDBDebugSessionInfo &rSessionInfo) {
-  CMICmnLLDBDebugSessionInfo::SStopPtInfo sStopPtInfo;
-  if (!rSessionInfo.RecordStopPtInfoGet(m_nMiStopPtId, sStopPtInfo)) {
+  CMICmnLLDBDebugSessionInfo::SStoppointInfo sStoppointInfo;
+  if (!rSessionInfo.RecordStoppointInfoGet(m_nMiStoppointId, sStoppointInfo)) {
     SetError(CMIUtilString::Format(
-        MIRSRC(IDS_CMD_ERR_STOPPT_INFO_OBJ_NOT_FOUND),
-        m_cmdData.strMiCmd.c_str(), static_cast<uint64_t>(m_nMiStopPtId)));
+        MIRSRC(IDS_CMD_ERR_STOPPOINT_INFO_OBJ_NOT_FOUND),
+        m_cmdData.strMiCmd.c_str(), static_cast<uint64_t>(m_nMiStoppointId)));
     return MIstatus::failure;
   }
-  sStopPtInfo.m_strCondition = m_strBrkPtExpr;
-  return rSessionInfo.RecordStopPtInfo(sStopPtInfo);
+  sStoppointInfo.m_strCondition = m_strBreakpointExpr;
+  return rSessionInfo.RecordStoppointInfo(sStoppointInfo);
 }
 
 // Details: CMICmdCmdBreakWatch constructor.
@@ -1138,8 +1146,9 @@ bool CMICmdCmdBreakCondition::UpdateStopPtInfo(
 // Throws:  None.
 //--
 CMICmdCmdBreakWatch::CMICmdCmdBreakWatch()
-    : m_constStrArgNamedAccessWatchPt("a"), m_constStrArgNamedReadWatchPt("r"),
-      m_constStrArgNamedExpr("expr"), m_stopPtInfo(), m_watchPt() {
+    : m_constStrArgNamedAccessWatchpoint("a"),
+      m_constStrArgNamedReadWatchpoint("r"), m_constStrArgNamedExpr("expr"),
+      m_stoppointInfo(), m_watchpoint() {
   // Command factory matches this name with that received from the stdin stream
   m_strMiCmd = "break-watch";
 
@@ -1157,10 +1166,10 @@ CMICmdCmdBreakWatch::CMICmdCmdBreakWatch()
 // Throws:  None.
 //--
 bool CMICmdCmdBreakWatch::ParseArgs() {
-  m_setCmdArgs.Add(new CMICmdArgValOptionShort(m_constStrArgNamedAccessWatchPt,
+  m_setCmdArgs.Add(new CMICmdArgValOptionShort(
+      m_constStrArgNamedAccessWatchpoint, false, true));
+  m_setCmdArgs.Add(new CMICmdArgValOptionShort(m_constStrArgNamedReadWatchpoint,
                                                false, true));
-  m_setCmdArgs.Add(
-      new CMICmdArgValOptionShort(m_constStrArgNamedReadWatchPt, false, true));
   m_setCmdArgs.Add(new CMICmdArgValText(m_constStrArgNamedExpr, true, true));
   return ParseValidateCmdOptions();
 }
@@ -1251,8 +1260,8 @@ static bool FindAddressByExpressionEvaluation(lldb::SBTarget &rSbTarget,
 //--
 bool CMICmdCmdBreakWatch::Execute() {
   CMICMDBASE_GETOPTION(pArgAccess, OptionShort,
-                       m_constStrArgNamedAccessWatchPt);
-  CMICMDBASE_GETOPTION(pArgRead, OptionShort, m_constStrArgNamedReadWatchPt);
+                       m_constStrArgNamedAccessWatchpoint);
+  CMICMDBASE_GETOPTION(pArgRead, OptionShort, m_constStrArgNamedReadWatchpoint);
   CMICMDBASE_GETOPTION(pArgExpr, Text, m_constStrArgNamedExpr);
 
   // Ask LLDB for the target to check if we have valid or dummy one.
@@ -1291,9 +1300,9 @@ bool CMICmdCmdBreakWatch::Execute() {
   bool write = !pArgRead->GetFound();
 
   lldb::SBError sbError;
-  m_watchPt = sbTarget.WatchAddress(address, size, read, write, sbError);
+  m_watchpoint = sbTarget.WatchAddress(address, size, read, write, sbError);
 
-  if (!m_watchPt) {
+  if (!m_watchpoint) {
     const char *type = "write";
     if (pArgAccess->GetFound())
       type = "access";
@@ -1301,37 +1310,38 @@ bool CMICmdCmdBreakWatch::Execute() {
       type = "read";
 
     SetError(CMIUtilString::Format(
-        MIRSRC(IDS_CMD_ERR_CREATE_WATCHPT), m_cmdData.strMiCmd.c_str(), type,
+        MIRSRC(IDS_CMD_ERR_CREATE_WATCHPOINT), m_cmdData.strMiCmd.c_str(), type,
         static_cast<uint64_t>(address), static_cast<uint64_t>(size)));
     return MIstatus::failure;
   }
 
-  if (!rSessionInfo.GetStopPtInfo(m_watchPt, m_stopPtInfo)) {
+  if (!rSessionInfo.GetStoppointInfo(m_watchpoint, m_stoppointInfo)) {
     SetError(CMIUtilString::Format(
-        MIRSRC(IDS_CMD_ERR_WATCHPT_STOPPT_INFO_CREATE),
-        m_cmdData.strMiCmd.c_str(), static_cast<uint64_t>(m_watchPt.GetID())));
+        MIRSRC(IDS_CMD_ERR_WATCHPOINT_STOPPOINT_INFO_CREATE),
+        m_cmdData.strMiCmd.c_str(),
+        static_cast<uint64_t>(m_watchpoint.GetID())));
     return MIstatus::failure;
   }
 
-  m_stopPtInfo.m_bDisp = false;
-  m_stopPtInfo.m_bEnabled = m_watchPt.IsEnabled();
-  m_stopPtInfo.m_bHaveArgOptionThreadGrp = false;
-  m_stopPtInfo.m_nTimes = m_watchPt.GetHitCount();
-  m_stopPtInfo.m_watchPtVariable = isVariable;
-  m_stopPtInfo.m_watchPtExpr = expression;
-  m_stopPtInfo.m_watchPtRead = read;
-  m_stopPtInfo.m_watchPtWrite = write;
-  m_stopPtInfo.m_nIgnore = m_watchPt.GetIgnoreCount();
-  m_stopPtInfo.m_bPending = false;
-  m_stopPtInfo.m_bCondition = m_watchPt.GetCondition() != nullptr;
-  m_stopPtInfo.m_strCondition =
-      m_stopPtInfo.m_bCondition ? m_watchPt.GetCondition() : "";
-  m_stopPtInfo.m_bBrkPtThreadId = false;
+  m_stoppointInfo.m_bDisp = false;
+  m_stoppointInfo.m_bEnabled = m_watchpoint.IsEnabled();
+  m_stoppointInfo.m_bHaveArgOptionThreadGrp = false;
+  m_stoppointInfo.m_nTimes = m_watchpoint.GetHitCount();
+  m_stoppointInfo.m_watchpointVariable = isVariable;
+  m_stoppointInfo.m_watchpointExpr = expression;
+  m_stoppointInfo.m_watchpointRead = read;
+  m_stoppointInfo.m_watchpointWrite = write;
+  m_stoppointInfo.m_nIgnore = m_watchpoint.GetIgnoreCount();
+  m_stoppointInfo.m_bPending = false;
+  m_stoppointInfo.m_bCondition = m_watchpoint.GetCondition() != nullptr;
+  m_stoppointInfo.m_strCondition =
+      m_stoppointInfo.m_bCondition ? m_watchpoint.GetCondition() : "";
+  m_stoppointInfo.m_bBreakpointThreadId = false;
 
-  if (!rSessionInfo.RecordStopPtInfo(m_stopPtInfo)) {
+  if (!rSessionInfo.RecordStoppointInfo(m_stoppointInfo)) {
     SetError(CMIUtilString::Format(
-        MIRSRC(IDS_CMD_ERR_STOPPT_INFO_SET), m_cmdData.strMiCmd.c_str(),
-        static_cast<uint64_t>(m_stopPtInfo.m_nMiId)));
+        MIRSRC(IDS_CMD_ERR_STOPPOINT_INFO_SET), m_cmdData.strMiCmd.c_str(),
+        static_cast<uint64_t>(m_stoppointInfo.m_nMiId)));
     return MIstatus::failure;
   }
 
@@ -1348,11 +1358,11 @@ bool CMICmdCmdBreakWatch::Execute() {
 // Throws:  None.
 //--
 bool CMICmdCmdBreakWatch::Acknowledge() {
-  assert(m_watchPt.IsValid());
+  assert(m_watchpoint.IsValid());
 
   CMICmnMIValueResult miValueResult;
-  CMICmnLLDBDebugSessionInfo::Instance().MIResponseFormWatchPtInfo(
-      m_stopPtInfo, miValueResult);
+  CMICmnLLDBDebugSessionInfo::Instance().MIResponseFormWatchpointInfo(
+      m_stoppointInfo, miValueResult);
 
   const CMICmnMIResultRecord miRecordResult(
       m_cmdData.strMiCmdToken, CMICmnMIResultRecord::eResultClass_Done,

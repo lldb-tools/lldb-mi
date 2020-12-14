@@ -222,13 +222,13 @@ const CMICmnResources::SRsrcTextData
          "not recognised"},
         {IDS_LLDBOUTOFBAND_ERR_PROCESS_INVALID,
          "LLDB Out-of-band. Invalid '%s' in '%s'"},
-        {IDS_LLDBOUTOFBAND_ERR_STOPPT_NOTFOUND,
+        {IDS_LLDBOUTOFBAND_ERR_STOPPOINT_NOTFOUND,
          "LLDB Out-of-band. %s(). Stoppoint information for stoppoint ID "
          "%" PRIu64 " not found"},
-        {IDS_LLDBOUTOFBAND_ERR_STOPPT_INFO_GET,
+        {IDS_LLDBOUTOFBAND_ERR_STOPPOINT_INFO_GET,
          "LLDB Out-of-band. %s(). Failed to retrieve stoppoint information for "
          "for %s with LLDB ID %" PRId32},
-        {IDS_LLDBOUTOFBAND_ERR_STOPPT_INFO_SET,
+        {IDS_LLDBOUTOFBAND_ERR_STOPPOINT_INFO_SET,
          "LLDB Out-of-band. %s(). Failed to set stoppoint information for "
          "unified breakpoint ID %" PRIu64},
         {IDS_LLDBOUTOFBAND_ERR_FORM_MI_RESPONSE,
@@ -238,7 +238,7 @@ const CMICmnResources::SRsrcTextData
         {IDS_LLDBOUTOFBAND_ERR_SETNEWDRIVERSTATE,
          "LLDB Out-of-band. %s(). Event handler tried to set new MI Driver "
          "running state and failed. %s"},
-        {IDS_LLDBOUTOFBAND_ERR_STOPPT_CNT_EXCEEDED,
+        {IDS_LLDBOUTOFBAND_ERR_STOPPOINT_CNT_EXCEEDED,
          "LLDB Out-of-band. '%s'. Number of valid stoppoint exceeded %" PRIu64
          ". Cannot create new breakpoint with ID %" PRIu64},
         {IDS_DBGSESSION_ERR_SHARED_DATA_ADD, "LLDB debug session info. Failed "
@@ -372,26 +372,26 @@ const CMICmnResources::SRsrcTextData
         {IDS_CMD_ERR_NOT_IMPLEMENTED_DEPRECATED,
          "Command '%s'. Command not implemented as it has been deprecated"},
         {IDS_CMD_ERR_CREATE_TARGET, "Command '%s'. Create target failed: %s"},
-        {IDS_CMD_ERR_BRKPT_LOCATION_FORMAT,
+        {IDS_CMD_ERR_BREAKPOINT_LOCATION_FORMAT,
          "Command '%s'. Incorrect format for breakpoint location '%s'"},
-        {IDS_CMD_ERR_BRKPT_LOCATION_NOT_FOUND,
+        {IDS_CMD_ERR_BREAKPOINT_LOCATION_NOT_FOUND,
          "Command '%s'. Breakpoint location '%s' not found"},
-        {IDS_CMD_ERR_STOPPT_INVALID, "Command '%s'. Stoppoint '%s' invalid"},
-        {IDS_CMD_ERR_STOPPT_CNT_EXCEEDED,
+        {IDS_CMD_ERR_STOPPOINT_INVALID, "Command '%s'. Stoppoint '%s' invalid"},
+        {IDS_CMD_ERR_STOPPOINT_CNT_EXCEEDED,
          "Command '%s'. Number of valid stoppoint exceeded %" PRIu64
          ". Cannot create new stoppoint %" PRIu64},
         {IDS_CMD_ERR_INVALID_FRAME,
          "Command '%s'. The selected frame is invalid."},
-        {IDS_CMD_ERR_WATCHPT_STOPPT_INFO_CREATE,
+        {IDS_CMD_ERR_WATCHPOINT_STOPPOINT_INFO_CREATE,
          "Command '%s'. Failed to create stoppoint "
          "information for watchpoint LLDB ID %" PRIu64},
-        {IDS_CMD_ERR_STOPPT_INFO_SET,
+        {IDS_CMD_ERR_STOPPOINT_INFO_SET,
          "Command '%s'. Failed to set stoppoint "
          "information for unified stoppoint ID %" PRIu64},
         {IDS_CMD_ERR_FIND_EXPR_ADDRESS,
          "Command '%s'. Expression '%s' does not specify a locally visible "
          "or global variable and cannot be interpreted as an address"},
-        {IDS_CMD_ERR_CREATE_WATCHPT,
+        {IDS_CMD_ERR_CREATE_WATCHPOINT,
          "Command '%s'. Couldn't create %s watchpoint at address 0x%" PRIx64
          "with size %" PRIu64},
         {IDS_CMD_ERR_SOME_ERROR, "Command '%s'. Error: %s"},
@@ -437,7 +437,7 @@ const CMICmnResources::SRsrcTextData
          "Command '%s'. Invalid location format '%s'"},
         {IDS_CMD_ERR_INVALID_FORMAT_TYPE,
          "Command '%s'. Invalid var format type '%s'"},
-        {IDS_CMD_ERR_STOPPT_INFO_OBJ_NOT_FOUND,
+        {IDS_CMD_ERR_STOPPOINT_INFO_OBJ_NOT_FOUND,
          "Command '%s'. Stoppoint information for unified stoppoint ID %" PRIu64
          " not found"},
         {IDS_CMD_ERR_LLDB_ERR_WRITE_MEM_BYTES, "Command '%s'. Unable to write "
