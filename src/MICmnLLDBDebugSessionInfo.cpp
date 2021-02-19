@@ -11,6 +11,7 @@
 #include <cassert>
 #include <inttypes.h>
 #ifdef _WIN32
+#include <algorithm>
 #include <io.h>
 #else
 #include <unistd.h>
@@ -320,6 +321,13 @@ bool CMICmnLLDBDebugSessionInfo::ResolvePath(const CMIUtilString &vstrUnknown,
   }
 
   bool bOk = MIstatus::success;
+
+#ifdef _WIN32
+  // When remote debugging other platforms, incoming paths may have slashes instead of
+  // backslashes. The logic below assumes all paths to have backslashes on Windows,
+  // so do a replace.
+  std::replace(vwrResolvedPath.begin(), vwrResolvedPath.end(), '/', '\\');
+#endif
 
   CMIUtilString::VecString_t vecPathFolders;
   const MIuint nSplits = vwrResolvedPath.Split(PATH_SEPARATOR, vecPathFolders);
