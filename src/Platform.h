@@ -14,6 +14,7 @@
 #include <signal.h>
 
 #include "lldb/Host/HostGetOpt.h"
+#include "lldb/Host/windows/PosixApi.h"
 #include "lldb/Host/windows/windows.h"
 
 struct winsize {
@@ -25,7 +26,9 @@ typedef unsigned int speed_t;
 typedef unsigned int tcflag_t;
 
 // fcntl.h // This is not used by MI
+#ifndef O_NOCTTY
 #define O_NOCTTY 0400
+#endif
 
 // ioctls.h
 #define TIOCGWINSZ 0x5413
@@ -50,7 +53,9 @@ typedef long pid_t;
 #endif
 
 #define STDIN_FILENO 0
+#ifndef PATH_MAX
 #define PATH_MAX 32768
+#endif
 #define snprintf _snprintf
 
 extern int ioctl(int d, int request, ...);
@@ -64,12 +69,14 @@ typedef void (*sighandler_t)(int);
 
 // CODETAG_IOR_SIGNALS
 // signal.h
-#define SIGQUIT 3   // Terminal quit signal
-#define SIGKILL 9   // Kill (cannot be caught or ignored)
-#define SIGPIPE 13  // Write on a pipe with no one to read it
-#define SIGCONT 18  // Continue executing, if stopped.
-#define SIGTSTP 20  // Terminal stop signal
-#define SIGSTOP 23  // Stop executing (cannot be caught or ignored)
+#define SIGQUIT 3  // Terminal quit signal
+#define SIGKILL 9  // Kill (cannot be caught or ignored)
+#define SIGPIPE 13 // Write on a pipe with no one to read it
+#define SIGCONT 18 // Continue executing, if stopped.
+#define SIGTSTP 20 // Terminal stop signal
+#ifndef SIGSTOP
+#define SIGSTOP 23 // Stop executing (cannot be caught or ignored)
+#endif
 #define SIGWINCH 28 // (== SIGVTALRM)
 
 #else

@@ -8,7 +8,7 @@
 
 // Third party headers:
 #ifdef _WIN32
-#include <windows.h>
+#include "Platform.h"
 #endif
 
 // In-house headers:

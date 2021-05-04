@@ -17,9 +17,7 @@
 // Windows headers:
 #ifdef _WIN32
 
-// Suppress the min and max macro definitions in Windef.h.
-#define NOMINMAX
-#include <windows.h>
+#include "Platform.h"
 
 // Debugging:
 #ifdef _DEBUG
