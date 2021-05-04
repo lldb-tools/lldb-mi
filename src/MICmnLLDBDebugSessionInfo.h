@@ -212,18 +212,21 @@ public:
   // Attributes:
 public:
   // The following are available to all command instances
-  const MIuint m_nBreakpointCntMax;
+  const MIuint m_nBreakpointCntMax = INT32_MAX;
   VecActiveThreadId_t m_vecActiveThreadId;
-  lldb::tid_t m_currentSelectedThread;
+  lldb::tid_t m_currentSelectedThread = LLDB_INVALID_THREAD_ID;
 
   // These are keys that can be used to access the shared data map
   // Note: This list is expected to grow and will be moved and abstracted in the
   // future.
-  const CMIUtilString m_constStrSharedDataKeyWkDir;
-  const CMIUtilString m_constStrSharedDataSolibPath;
-  const CMIUtilString m_constStrPrintCharArrayAsString;
-  const CMIUtilString m_constStrPrintExpandAggregates;
-  const CMIUtilString m_constStrPrintAggregateFieldNames;
+  const CMIUtilString m_constStrSharedDataKeyWkDir = "Working Directory";
+  const CMIUtilString m_constStrSharedDataSolibPath = "Solib Path";
+  const CMIUtilString m_constStrPrintCharArrayAsString =
+      "Print CharArrayAsString";
+  const CMIUtilString m_constStrPrintExpandAggregates =
+      "Print ExpandAggregates";
+  const CMIUtilString m_constStrPrintAggregateFieldNames =
+      "Print AggregateFieldNames";
 
   // Typedefs:
 private:
@@ -236,7 +239,7 @@ private:
 
   // Methods:
 private:
-  /* ctor */ CMICmnLLDBDebugSessionInfo();
+  /* ctor */ CMICmnLLDBDebugSessionInfo() = default;
   /* ctor */ CMICmnLLDBDebugSessionInfo(const CMICmnLLDBDebugSessionInfo &);
   void operator=(const CMICmnLLDBDebugSessionInfo &);
   //
@@ -269,10 +272,10 @@ private:
   MapMiStoppointIdToStoppointInfo_t m_mapMiStoppointIdToStoppointInfo;
   CMIUtilThreadMutex m_sessionMutex;
   MapLldbStoppointIdToMiStoppointId_t m_mapLldbStoppointIdToMiStoppointId;
-  MIuint m_nNextMiStoppointId;
+  MIuint m_nNextMiStoppointId = 1UL;
   std::mutex m_miStoppointIdsMutex;
 
-  bool m_bCreateTty; // Created inferiors should launch with new TTYs
+  bool m_bCreateTty = false; // Created inferiors should launch with new TTYs
 };
 
 //++
