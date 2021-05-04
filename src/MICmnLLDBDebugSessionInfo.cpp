@@ -38,23 +38,6 @@
 #define RETURNED_PATH_SEPARATOR "/"
 
 //++
-// Details: CMICmnLLDBDebugSessionInfo constructor.
-// Type:    Method.
-// Args:    None.
-// Return:  None.
-// Throws:  None.
-//--
-CMICmnLLDBDebugSessionInfo::CMICmnLLDBDebugSessionInfo()
-    : m_nBreakpointCntMax(INT32_MAX),
-      m_currentSelectedThread(LLDB_INVALID_THREAD_ID),
-      m_constStrSharedDataKeyWkDir("Working Directory"),
-      m_constStrSharedDataSolibPath("Solib Path"),
-      m_constStrPrintCharArrayAsString("Print CharArrayAsString"),
-      m_constStrPrintExpandAggregates("Print ExpandAggregates"),
-      m_constStrPrintAggregateFieldNames("Print AggregateFieldNames"),
-      m_bCreateTty(false), m_nNextMiStoppointId(1UL) {}
-
-//++
 // Details: CMICmnLLDBDebugSessionInfo destructor.
 // Type:    Overridable.
 // Args:    None.
