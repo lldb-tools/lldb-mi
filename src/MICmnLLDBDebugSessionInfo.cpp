@@ -852,23 +852,6 @@ void CMICmnLLDBDebugSessionInfo::MIResponseFormWatchpointInfo(
   vwrMiValueResult = CMICmnMIValueResult("wpt", miValueTuple);
 }
 
-template <class T>
-static lldb::SBAddress GetBreakOrWatchPointAddress(lldb::SBTarget &vrTarget,
-                                                   T &vrStoppoint);
-
-template <>
-lldb::SBAddress GetBreakOrWatchPointAddress(lldb::SBTarget &vrTarget,
-                                            lldb::SBBreakpoint &vrStoppoint) {
-  lldb::SBBreakpointLocation breakpointLoc = vrStoppoint.GetLocationAtIndex(0);
-  return breakpointLoc.GetAddress();
-}
-
-template <>
-lldb::SBAddress GetBreakOrWatchPointAddress(lldb::SBTarget &vrTarget,
-                                            lldb::SBWatchpoint &vrStoppoint) {
-  return lldb::SBAddress(vrStoppoint.GetWatchAddress(), vrTarget);
-}
-
 //++
 // Details: Retrieve breakpoint information and write into the given breakpoint
 //          information object. Note not all possible information is retrieved
