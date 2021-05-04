@@ -270,7 +270,6 @@ CMIUtilString CMICmnLLDBDebugSessionInfoVarObj::GetValueStringFormatted(
   if (utilValue.IsIntegerType() || utilValue.IsPointerType()) {
     MIuint64 nValue = 0;
     if (CMICmnLLDBProxySBValue::GetValueAsUnsigned(vrValue, nValue)) {
-      lldb::SBValue &rValue = const_cast<lldb::SBValue &>(vrValue);
       return GetStringFormatted(nValue, defaultValue, veVarFormat);
     }
   }
