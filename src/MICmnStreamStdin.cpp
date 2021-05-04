@@ -7,8 +7,8 @@
 //===----------------------------------------------------------------------===//
 
 // Third Party Headers
-#ifdef _MSC_VER
-#include <windows.h>
+#ifdef _WIN32
+#include "Platform.h"
 #endif
 #include <string.h>
 
