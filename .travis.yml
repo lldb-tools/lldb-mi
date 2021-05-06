@@ -17,6 +17,7 @@ archlinux:
   - ninja
   - cmake
   - gtest
+  - gmock
   script:
   - "./ci/travis.sh"
 
