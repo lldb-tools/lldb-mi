@@ -201,6 +201,7 @@ MIuint CMICmnLLDBDebugSessionInfo::GetOrCreateMiStoppointId(
   auto emplacementStatus =
       m_mapLldbStoppointIdToMiStoppointId.emplace(key, nNewId);
   assert(emplacementStatus.second);
+  MIunused(emplacementStatus);
 
   return nNewId;
 }
