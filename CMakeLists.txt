@@ -27,7 +27,8 @@ if(LLVM_BUILD_MAIN_SRC_DIR)
   include_directories(${LLVM_BUILD_BINARY_DIR}/tools/lldb/include)
 endif()
 
-add_definitions(${LLVM_DEFINITIONS})
+separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
+add_definitions(${LLVM_DEFINITIONS_LIST})
 
 if (NOT LLVM_ENABLE_EH)
   if(LLVM_COMPILER_IS_GCC_COMPATIBLE)
