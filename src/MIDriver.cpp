@@ -423,9 +423,17 @@ lldb::SBError CMIDriver::ParseArgs(const int argc, const char *argv[],
       // Check for a filename
       if (argFile.IsFilePath(strArg) ||
           CMICmdArgValString(true, false, true).IsStringArg(strArg)) {
-        // Is this the command file for the '-s' or '--source' options?
+        // Store the previous argument for later
         const CMIUtilString strPrevArg(argv[i - 1]);
-        if (strPrevArg == "-s" || strPrevArg == "--source") {
+        // Might be that it is a single command
+        if (strPrevArg == "-c" || strPrevArg == "--command") {
+          m_strCmdLineArgCommandString = strArg;
+          m_bHaveCommandStringOnCmdLine = true;
+          i--; // skip '-c'
+          continue;
+        }
+        // Is this the command file for the '-s' or '--source' options?
+        else if (strPrevArg == "-s" || strPrevArg == "--source") {
           m_strCmdLineArgCommandFileNamePath = strArg;
           m_bHaveCommandFileNamePathOnCmdLine = true;
           i--; // skip '-s' on the next loop
@@ -436,9 +444,10 @@ lldb::SBError CMIDriver::ParseArgs(const int argc, const char *argv[],
         m_strCmdLineArgExecuteableFileNamePath = strArg;
         m_bHaveExecutableFileNamePathOnCmdLine = true;
       }
-      // Report error if no command file was specified for the '-s' or
-      // '--source' options
-      else if (strArg == "-s" || strArg == "--source") {
+      // Report error if no command file was specified for the '-c', '-s',
+      // '--command' or '--source' options
+      else if (strArg == "-c" || strArg == "-s" || strArg == "--command" ||
+               strArg == "--source") {
         vwbExiting = true;
         const CMIUtilString errMsg = CMIUtilString::Format(
             MIRSRC(IDS_CMD_ARGS_ERR_VALIDATION_MISSING_INF), strArg.c_str());
@@ -544,6 +553,12 @@ bool CMIDriver::DoMainLoop() {
 
   // App is not quitting currently
   m_bExitApp = false;
+
+  // Handle command string
+  if (m_bHaveCommandStringOnCmdLine) {
+    const bool bAsyncMode = false;
+    ExecuteCommandString(bAsyncMode);
+  }
 
   // Handle source file
   if (m_bHaveCommandFileNamePathOnCmdLine) {
@@ -1236,6 +1251,60 @@ void CMIDriver::SetDriverDebuggingArgExecutable() {
 //--
 bool CMIDriver::IsDriverDebuggingArgExecutable() const {
   return m_bDriverDebuggingArgExecutable;
+}
+
+//++
+// Details: Execute commands from command string in specified mode, and
+//          set exit-flag if needed.
+// Type:    Method.
+// Args:    vbAsyncMode       - (R) True = execute commands in asynchronous
+// mode, false = otherwise.
+// Return:  MIstatus::success - Function succeeded.
+//          MIstatus::failure - Function failed.
+// Throws:  None.
+//--
+bool CMIDriver::ExecuteCommandString(const bool vbAsyncMode) {
+  // Switch lldb to synchronous mode
+  CMICmnLLDBDebugSessionInfo &rSessionInfo(
+      CMICmnLLDBDebugSessionInfo::Instance());
+  const bool bAsyncSetting = rSessionInfo.GetDebugger().GetAsync();
+  rSessionInfo.GetDebugger().SetAsync(vbAsyncMode);
+
+  // Execute commands from file
+  bool bOk = MIstatus::success;
+  CMIUtilString strCommand = m_strCmdLineArgCommandString;
+
+  // Print command
+  bOk = CMICmnStreamStdout::TextToStdout(strCommand);
+
+  // Skip if it's a comment or empty line
+  if (strCommand.empty() || strCommand[0] == '#') {
+    rSessionInfo.GetDebugger().SetAsync(bAsyncSetting);
+    return bOk;
+  }
+
+  // Execute if no error
+  if (bOk) {
+    CMIUtilThreadLock lock(rSessionInfo.GetSessionMutex());
+    bOk = InterpretCommand(strCommand);
+  }
+
+  // Draw the prompt after command will be executed (if enabled)
+  bOk = bOk && CMICmnStreamStdout::WritePrompt();
+
+  // Exit if there is an error
+  if (!bOk) {
+    const bool bForceExit = true;
+    SetExitApplicationFlag(bForceExit);
+  }
+
+  // Wait while the handler thread handles incoming events
+  CMICmnLLDBDebugger::Instance().WaitForHandleEvent();
+
+  // Switch lldb back to initial mode
+  rSessionInfo.GetDebugger().SetAsync(bAsyncSetting);
+
+  return bOk;
 }
 
 //++

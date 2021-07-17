@@ -141,6 +141,7 @@ private:
   bool InitClientIDEToMIDriver() const;
   bool InitClientIDEEclipse() const;
   bool LocalDebugSessionStartupExecuteCommands();
+  bool ExecuteCommandString(const bool vbAsyncMode);
   bool ExecuteCommandFile(const bool vbAsyncMode);
 
   // Overridden:
@@ -173,6 +174,10 @@ private:
                                         // debugging executable passed as
                                         // argument,
   // false = running via a client (e.g. Eclipse)
+  bool m_bHaveCommandStringOnCmdLine; // True = initial commands given as one of
+                                      // the parameters to the MI Driver,
+                                      // false = not found
+  CMIUtilString m_strCmdLineArgCommandString;
   bool m_bHaveCommandFileNamePathOnCmdLine; // True = file with initial commands
                                             // given as one of the parameters to
                                             // the MI Driver, false = not found
