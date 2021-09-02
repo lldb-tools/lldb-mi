@@ -61,7 +61,8 @@ ENDIF("${isSystemDir}" STREQUAL "-1")
 
 add_subdirectory(src)
 
-SET(INCLUDE_TESTS FALSE CACHE BOOL "")
+SET(INCLUDE_TESTS CACHE BOOL FALSE)
 if (INCLUDE_TESTS)
+  include(CTest)
   add_subdirectory(test)
 endif()
