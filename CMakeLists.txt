@@ -62,7 +62,13 @@ ENDIF("${isSystemDir}" STREQUAL "-1")
 
 add_subdirectory(src)
 
-SET(INCLUDE_TESTS FALSE CACHE BOOL "")
+SET(INCLUDE_TESTS CACHE BOOL FALSE)
+if (INCLUDE_TESTS AND WIN32)
+  message(WARNING "Not supported on Windows due to a bug: https://gitlab.kitware.com/cmake/cmake/-/issues/22659. Testing will be disabled.")
+  SET(INCLUDE_TESTS FALSE)
+endif()
+
 if (INCLUDE_TESTS)
+  include(CTest)
   add_subdirectory(test)
 endif()
