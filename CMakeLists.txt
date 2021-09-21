@@ -27,7 +27,8 @@ if(LLVM_BUILD_MAIN_SRC_DIR)
   include_directories(${LLVM_BUILD_BINARY_DIR}/tools/lldb/include)
 endif()
 
-add_definitions(${LLVM_DEFINITIONS})
+separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
+add_definitions(${LLVM_DEFINITIONS_LIST})
 
 if (NOT LLVM_ENABLE_EH)
   if(LLVM_COMPILER_IS_GCC_COMPATIBLE)
@@ -61,7 +62,13 @@ ENDIF("${isSystemDir}" STREQUAL "-1")
 
 add_subdirectory(src)
 
-SET(INCLUDE_TESTS FALSE CACHE BOOL "")
+SET(INCLUDE_TESTS CACHE BOOL FALSE)
+if (INCLUDE_TESTS AND WIN32)
+  message(WARNING "Not supported on Windows due to a bug: https://gitlab.kitware.com/cmake/cmake/-/issues/22659. Testing will be disabled.")
+  SET(INCLUDE_TESTS FALSE)
+endif()
+
 if (INCLUDE_TESTS)
+  include(CTest)
   add_subdirectory(test)
 endif()

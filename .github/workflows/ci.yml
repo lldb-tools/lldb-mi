@@ -1,0 +1,80 @@
+name: LLDB-MI CI
+
+on: [push, pull_request]
+
+jobs:    
+  build_and_test:
+    name: Build LLDB-MI and run the testsuite
+
+    env:
+      # CMake build type
+      BUILD_TYPE: Release
+      
+      BUILD_PATH: "'${{github.workspace}}/build'"
+
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Install Ninja, LLVM, Clang and LLDB (Ubuntu)
+        run: sudo apt-get install -y ninja-build clang-format clang libclang-dev liblldb-dev lldb llvm-dev llvm
+        if: matrix.os == 'ubuntu-latest'
+
+      - name: Checkout sources
+        uses: actions/checkout@v2
+  
+      - name: Check format (Ubuntu)
+        run: ${{github.workspace}}/.github/scripts/clang-format.sh
+        if: matrix.os == 'ubuntu-latest'
+
+      - name: Install Ninja, LLVM, Clang and LLDB (Mac OS)
+        run: |
+          brew install ninja llvm
+          echo "LLVM_CONFIG_PATH=$(brew --cellar llvm)/$(brew list --versions llvm | sed -E 's/llvm (.*)/\1/g')/lib/cmake/llvm" >> $GITHUB_ENV       
+        if: matrix.os == 'macos-latest'
+
+      - name: Install Ninja (Windows)
+        run: choco install -y --no-progress ninja
+        if: matrix.os == 'windows-latest'
+        
+      - name: Download LLVM binaries (Windows)
+        # Using not yet released feature 'check_artifacts'.
+        uses: dawidd6/action-download-artifact@master
+        with:
+          workflow: ci.yml
+          workflow_conclusion: success
+          repo: tkrasnukha/install-llvm
+          # Get the last available artifact.
+          check_artifacts:  true
+        if: matrix.os == 'windows-latest'
+        
+      # Required to find cl.exe
+      - name: Setup devcmd (Windows)
+        uses: ilammy/msvc-dev-cmd@v1
+        if: matrix.os == 'windows-latest'
+        
+      - name: Set up environment (Windows)
+        run: |
+          $LLVM_CONFIG_PATH = ("${{github.workspace}}").Replace("\", "/") + "/llvm-inst/lib/cmake/llvm"
+          echo "LLVM_CONFIG_PATH='$LLVM_CONFIG_PATH'" >> $env:GITHUB_ENV
+          
+          $CC = (gcm "cl.exe" | select-object -ExpandProperty Definition)
+          echo "CC='$CC'" >> $env:GITHUB_ENV
+          echo "CXX='$CC'" >> $env:GITHUB_ENV
+        if: matrix.os == 'windows-latest'
+      
+      - name: Configure CMake project
+        run: |
+          export LLVM_DIR=${{env.LLVM_CONFIG_PATH}}
+          cmake -GNinja -B ${{env.BUILD_PATH}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DINCLUDE_TESTS=ON
+        shell: bash
+
+      - name: Build
+        run: cmake --build ${{env.BUILD_PATH}} --config ${{env.BUILD_TYPE}}
+
+      - name: Run testsuite
+        run: |
+          cd ${{env.BUILD_PATH}}
+          ctest -V -C ${{env.BUILD_TYPE}}
