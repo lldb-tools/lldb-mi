@@ -62,3 +62,12 @@ cmake -DLLVM_ENABLE_PROJECTS="clang;lldb;libcxx;libcxxabi" -DCMAKE_INSTALL_PREFI
 cmake -DCMAKE_PREFIX_PATH=~/buildspace/llvm-inst/ -DUSE_LLDB_FRAMEWORK=1 -GNinja ..
 
 ```
+
+# Notes
+
+On some architectures (e. g. Linux, x86-64), LLDB dinamic library fails to determine its location. That results to inability of locating a gdbserver stub:
+```bash
+process launch failed: unable to locate lldb-server
+```
+
+The workaraund is to set LLDB_DEBUGSERVER_PATH environment variable before running LLDB-MI.
