@@ -10,6 +10,7 @@
 #ifdef _WIN32
 #include "Platform.h"
 #endif
+#include <iostream>
 #include <string.h>
 
 // In-house headers:
@@ -28,7 +29,7 @@
 // Throws:  None.
 //--
 CMICmnStreamStdin::CMICmnStreamStdin()
-    : m_strPromptCurrent("(gdb)"), m_bShowPrompt(true), m_pCmdBuffer(nullptr) {}
+    : m_strPromptCurrent("(gdb)"), m_bShowPrompt(true) {}
 
 //++
 // Details: CMICmnStreamStdin destructor.
@@ -61,9 +62,7 @@ bool CMICmnStreamStdin::Initialize() {
   MI::ModuleInit<CMICmnLog>(IDS_MI_INIT_ERR_LOG, bOk, errMsg);
   MI::ModuleInit<CMICmnResources>(IDS_MI_INIT_ERR_RESOURCES, bOk, errMsg);
 
-  if (bOk) {
-    m_pCmdBuffer = new char[m_constBufferSize];
-  } else {
+  if (!bOk) {
     CMIUtilString strInitError(CMIUtilString::Format(
         MIRSRC(IDS_MI_INIT_ERR_STREAMSTDIN), errMsg.c_str()));
     SetErrorDescription(strInitError);
@@ -93,11 +92,6 @@ bool CMICmnStreamStdin::Shutdown() {
   m_bInitialized = false;
 
   ClrErrorDescription();
-
-  if (m_pCmdBuffer != nullptr) {
-    delete[] m_pCmdBuffer;
-    m_pCmdBuffer = nullptr;
-  }
 
   bool bOk = MIstatus::success;
   CMIUtilString errMsg;
@@ -186,33 +180,22 @@ bool CMICmnStreamStdin::GetEnablePrompt() const { return m_bShowPrompt; }
 const char *CMICmnStreamStdin::ReadLine(CMIUtilString &vwErrMsg) {
   vwErrMsg.clear();
 
-  // Read user input
-  const char *pText = ::fgets(&m_pCmdBuffer[0], m_constBufferSize, stdin);
-  if (pText == nullptr) {
+  std::getline(std::cin, m_pCmdString);
+
+  if (std::cin.eof()) {
 #ifdef _MSC_VER
     // Was Ctrl-C hit?
     // On Windows, Ctrl-C gives an ERROR_OPERATION_ABORTED as error on the
-    // command-line.
-    // The end-of-file indicator is also set, so without this check we will exit
-    // next if statement.
+    // command-line and the end-of-file indicator is also set.
     if (::GetLastError() == ERROR_OPERATION_ABORTED)
       return nullptr;
 #endif
-    if (::feof(stdin)) {
-      const bool bForceExit = true;
-      CMIDriver::Instance().SetExitApplicationFlag(bForceExit);
-    } else if (::ferror(stdin) != 0)
-      vwErrMsg = ::strerror(errno);
+    const bool bForceExit = true;
+    CMIDriver::Instance().SetExitApplicationFlag(bForceExit);
+  } else if (std::cin.fail()) {
+    vwErrMsg = ::strerror(errno);
     return nullptr;
   }
 
-  // Strip off new line characters
-  for (char *pI = m_pCmdBuffer; *pI != '\0'; pI++) {
-    if ((*pI == '\n') || (*pI == '\r')) {
-      *pI = '\0';
-      break;
-    }
-  }
-
-  return pText;
+  return m_pCmdString.c_str();
 }
