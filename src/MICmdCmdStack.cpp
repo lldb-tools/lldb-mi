@@ -34,6 +34,32 @@
 #include <algorithm>
 
 //++
+// Details: The check for the non-MI command "frame variable" validates that the
+//          process is paused and the frame exists.
+// Type:    Method.
+// Args:    processState     - the current process state.
+//          threadInvalid    - (R) Caller's m_bThreadInvalid member.
+// Return:  MIstatus::success - Function succeeded.
+//          MIstatus::failure - Function failed.
+// Throws:  None.
+//--
+bool EnsureProcessIsPaused(lldb::StateType processState, bool &threadInvalid) {
+  switch (processState) {
+  case lldb::eStateInvalid:
+  case lldb::eStateCrashed:
+    threadInvalid = true;
+    return MIstatus::failure;
+  case lldb::eStateSuspended:
+  case lldb::eStateStopped:
+    break;
+  default:
+    threadInvalid = true;
+  }
+
+  return MIstatus::success;
+}
+
+//++
 // Details: CMICmdCmdStackInfoDepth constructor.
 // Type:    Method.
 // Args:    None.
@@ -520,7 +546,7 @@ bool CMICmdCmdStackListArguments::Execute() {
       CMICmnLLDBDebugSessionInfo::Instance());
   lldb::SBProcess sbProcess = rSessionInfo.GetProcess();
 
-  if (!EnsureProcessIsPaused()) {
+  if (!EnsureProcessIsPaused(sbProcess.GetState(), m_bThreadInvalid)) {
     return MIstatus::failure;
   }
 
@@ -856,7 +882,7 @@ bool CMICmdCmdStackListVariables::Execute() {
       CMICmnLLDBDebugSessionInfo::Instance());
   lldb::SBProcess sbProcess = rSessionInfo.GetProcess();
 
-  if (!EnsureProcessIsPaused()) {
+  if (!EnsureProcessIsPaused(sbProcess.GetState(), m_bThreadInvalid)) {
     return MIstatus::failure;
   }
 
@@ -1040,30 +1066,4 @@ bool CMICmdCmdStackSelectFrame::Acknowledge() {
 //--
 CMICmdBase *CMICmdCmdStackSelectFrame::CreateSelf() {
   return new CMICmdCmdStackSelectFrame();
-}
-
-//++
-// Details: The check for the non-MI command "frame variable" validates that the
-//          process is paused and the frame exists.
-// Type:    Method.
-// Args:    None.
-// Return:  MIstatus::success - Function succeeded.
-//          MIstatus::failure - Function failed.
-// Throws:  None.
-//--
-bool EnsureProcessIsPaused() {
-  lldb::StateType processState = sbProcess.GetState();
-  switch (processState) {
-  case lldb::eStateInvalid:
-  case lldb::eStateCrashed:
-    m_bThreadInvalid = true;
-    return MIstatus::failure;
-  case lldb::eStateSuspended:
-  case lldb::eStateStopped:
-    break;
-  default:
-    m_bThreadInvalid = true;
-  }
-
-  return MIstatus::success;
 }
