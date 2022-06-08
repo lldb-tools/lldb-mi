@@ -323,9 +323,9 @@ bool CMICmnLLDBDebugSessionInfo::ResolvePath(const CMIUtilString &vstrUnknown,
   bool bOk = MIstatus::success;
 
 #ifdef _WIN32
-  // When remote debugging other platforms, incoming paths may have slashes instead of
-  // backslashes. The logic below assumes all paths to have backslashes on Windows,
-  // so do a replace.
+  // When remote debugging other platforms, incoming paths may have slashes
+  // instead of backslashes. The logic below assumes all paths to have
+  // backslashes on Windows, so do a replace.
   std::replace(vwrResolvedPath.begin(), vwrResolvedPath.end(), '/', '\\');
 #endif
 
