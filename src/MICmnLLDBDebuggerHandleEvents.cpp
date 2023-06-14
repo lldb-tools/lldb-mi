@@ -1171,6 +1171,18 @@ bool CMICmnLLDBDebuggerHandleEvents::HandleProcessEventStateStopped(
   case lldb::eStopReasonInstrumentation:
     pEventType = "eStopReasonInstrumentation";
     break;
+  case lldb::eStopReasonProcessorTrace:
+    pEventType = "eStopReasonProcessorTrace";
+    break;
+  case lldb::eStopReasonFork:
+    pEventType = "eStopReasonFork";
+    break;
+  case lldb::eStopReasonVFork:
+    pEventType = "eStopReasonVFork";
+    break;
+  case lldb::eStopReasonVForkDone:
+    pEventType = "eStopReasonVForkDone";
+    break;
   }
 
   // ToDo: Remove when finished coding application
