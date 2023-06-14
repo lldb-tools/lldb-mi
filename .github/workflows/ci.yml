@@ -19,7 +19,9 @@ jobs:
 
     steps:
       - name: Install Ninja, LLVM, Clang and LLDB (Ubuntu)
-        run: sudo apt-get install -y ninja-build clang-format clang libclang-dev liblldb-dev lldb llvm-dev llvm
+        run: |
+          sudo apt-get install -y ninja-build clang-format clang libclang-dev liblldb-dev lldb llvm-dev llvm
+          echo "LLVM_CONFIG_PATH=$(llvm-config --cmakedir)" >> $GITHUB_ENV
         if: matrix.os == 'ubuntu-latest'
 
       - name: Checkout sources
