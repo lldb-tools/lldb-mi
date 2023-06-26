@@ -78,6 +78,7 @@ public:
   bool Shutdown() override;
   //
   CMIUtilString GetAppVersion() const;
+  CMIUtilString GetAppVersionFull() const;
   bool RegisterDriver(const IDriver &vrADriver,
                       const CMIUtilString &vrDriverID);
   bool UnregisterDriver(const IDriver &vrADriver);

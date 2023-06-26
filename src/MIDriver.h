@@ -81,6 +81,7 @@ public:
   const CMIUtilString &GetAppNameShort() const;
   const CMIUtilString &GetAppNameLong() const;
   const CMIUtilString &GetVersionDescription() const;
+  const CMIUtilString &GetVersionDescriptionFull();
 
   // MI do work
   bool WriteMessageToLog(const CMIUtilString &vMessage);
@@ -154,6 +155,7 @@ private:
   static const CMIUtilString ms_constAppNameShort;
   static const CMIUtilString ms_constAppNameLong;
   static const CMIUtilString ms_constMIVersion;
+  static CMIUtilString ms_MIVersionFull;
   //
   bool m_bFallThruToOtherDriverEnabled; // True = yes fall through, false = do
                                         // not pass on command
