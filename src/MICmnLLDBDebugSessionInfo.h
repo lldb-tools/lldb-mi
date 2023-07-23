@@ -204,6 +204,7 @@ public:
   lldb::SBDebugger &GetDebugger() const;
   lldb::SBListener &GetListener() const;
   lldb::SBTarget GetTarget() const;
+  lldb::SBTarget GetSelectedOrDummyTarget() const;
   lldb::SBProcess GetProcess() const;
 
   void SetCreateTty(bool val);

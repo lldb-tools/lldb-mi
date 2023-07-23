@@ -99,7 +99,8 @@ bool CMICmdCmdSymbolListLines::Execute() {
   CMICMDBASE_GETOPTION(pArgFile, File, m_constStrArgNameFile);
 
   const auto &rSessionInfo(CMICmnLLDBDebugSessionInfo::Instance());
-  if (rSessionInfo.GetTarget() == rSessionInfo.GetDebugger().GetDummyTarget()) {
+  if (rSessionInfo.GetSelectedOrDummyTarget() ==
+      rSessionInfo.GetDebugger().GetDummyTarget()) {
     SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_INVALID_TARGET_CURRENT),
                                    m_cmdData.strMiCmd.c_str()));
     return MIstatus::failure;

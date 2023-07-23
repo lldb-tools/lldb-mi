@@ -149,7 +149,7 @@ bool CMICmdCmdBreakInsert::Execute() {
   // Ask LLDB for the target to check if we have valid or dummy one.
   CMICmnLLDBDebugSessionInfo &rSessionInfo(
       CMICmnLLDBDebugSessionInfo::Instance());
-  lldb::SBTarget sbTarget = rSessionInfo.GetTarget();
+  lldb::SBTarget sbTarget = rSessionInfo.GetSelectedOrDummyTarget();
 
   m_bBreakpointEnabled = !pArgDisableBreakpoint->GetFound();
   m_bBreakpointIsTemp = pArgTempBreakpoint->GetFound();
@@ -464,7 +464,7 @@ bool CMICmdCmdBreakDelete::Execute() {
   }
 
   bool bSuccess = false;
-  lldb::SBTarget sbTarget = rSessionInfo.GetTarget();
+  lldb::SBTarget sbTarget = rSessionInfo.GetSelectedOrDummyTarget();
   if (sStoppointInfo.m_eType ==
       CMICmnLLDBDebugSessionInfo::eStoppointType_Breakpoint)
     bSuccess = sbTarget.BreakpointDelete(
@@ -601,7 +601,7 @@ bool CMICmdCmdBreakDisable::Execute() {
     }
   };
 
-  lldb::SBTarget sbTarget = rSessionInfo.GetTarget();
+  lldb::SBTarget sbTarget = rSessionInfo.GetSelectedOrDummyTarget();
   if (sStoppointInfo.m_eType ==
       CMICmnLLDBDebugSessionInfo::eStoppointType_Breakpoint) {
     lldb::SBBreakpoint breakpoint = sbTarget.FindBreakpointByID(
@@ -744,7 +744,7 @@ bool CMICmdCmdBreakEnable::Execute() {
     }
   };
 
-  lldb::SBTarget sbTarget = rSessionInfo.GetTarget();
+  lldb::SBTarget sbTarget = rSessionInfo.GetSelectedOrDummyTarget();
   if (sStoppointInfo.m_eType ==
       CMICmnLLDBDebugSessionInfo::eStoppointType_Breakpoint) {
     lldb::SBBreakpoint breakpoint = sbTarget.FindBreakpointByID(
@@ -875,7 +875,7 @@ bool CMICmdCmdBreakAfter::Execute() {
     return MIstatus::failure;
   }
 
-  lldb::SBTarget sbTarget = rSessionInfo.GetTarget();
+  lldb::SBTarget sbTarget = rSessionInfo.GetSelectedOrDummyTarget();
   if (sStoppointInfo.m_eType ==
       CMICmnLLDBDebugSessionInfo::eStoppointType_Breakpoint) {
     lldb::SBBreakpoint breakpoint = sbTarget.FindBreakpointByID(
@@ -1023,7 +1023,7 @@ bool CMICmdCmdBreakCondition::Execute() {
     return MIstatus::failure;
   }
 
-  lldb::SBTarget sbTarget = rSessionInfo.GetTarget();
+  lldb::SBTarget sbTarget = rSessionInfo.GetSelectedOrDummyTarget();
   if (sStoppointInfo.m_eType ==
       CMICmnLLDBDebugSessionInfo::eStoppointType_Breakpoint) {
     lldb::SBBreakpoint breakpoint = sbTarget.FindBreakpointByID(
@@ -1267,7 +1267,7 @@ bool CMICmdCmdBreakWatch::Execute() {
   // Ask LLDB for the target to check if we have valid or dummy one.
   CMICmnLLDBDebugSessionInfo &rSessionInfo(
       CMICmnLLDBDebugSessionInfo::Instance());
-  auto sbTarget = rSessionInfo.GetTarget();
+  auto sbTarget = rSessionInfo.GetSelectedOrDummyTarget();
   auto sbProcess = rSessionInfo.GetProcess();
   auto sbThread = sbProcess.GetSelectedThread();
   auto sbFrame = sbThread.GetSelectedFrame();
