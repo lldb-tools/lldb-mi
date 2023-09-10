@@ -979,13 +979,25 @@ lldb::SBListener &CMICmnLLDBDebugSessionInfo::GetListener() const {
 }
 
 //++
-// Details: Get current target.
+// Details: Get current selected target.
 // Type:    Method.
 // Args:    None.
-// Return:  lldb::SBTarget   - current target.
+// Return:  lldb::SBTarget   - current selected target.
 // Throws:  None.
 //--
 lldb::SBTarget CMICmnLLDBDebugSessionInfo::GetTarget() const {
+  auto target = GetDebugger().GetSelectedTarget();
+  return target;
+}
+
+//++
+// Details: Get current selected or dummy target.
+// Type:    Method.
+// Args:    None.
+// Return:  lldb::SBTarget   - current selected or dummy target.
+// Throws:  None.
+//--
+lldb::SBTarget CMICmnLLDBDebugSessionInfo::GetSelectedOrDummyTarget() const {
   auto target = GetDebugger().GetSelectedTarget();
   if (target.IsValid())
     return target;
