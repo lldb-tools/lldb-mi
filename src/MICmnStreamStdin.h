@@ -55,6 +55,5 @@ private:
   CMIUtilString m_strPromptCurrent; // Command line prompt as shown to the user
   bool m_bShowPrompt; // True = Yes prompt is shown/output to the user (stdout),
                       // false = no prompt
-  static const int m_constBufferSize = 2048;
-  char *m_pCmdBuffer;
+  std::string m_pCmdString;
 };
