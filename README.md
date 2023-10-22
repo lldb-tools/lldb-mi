@@ -65,7 +65,7 @@ cmake -DCMAKE_PREFIX_PATH=~/buildspace/llvm-inst/ -DUSE_LLDB_FRAMEWORK=1 -GNinja
 
 # Notes
 
-On some architectures (e.g. Linux, x86-64), LLDB dynamic library fails to determine its location. That results in an inability of locating a gdbserver stub:
+On some architectures (e.g. Linux, x86-64), LLDB dynamic library fails to determine its location. That results in the inability to locate a gdbserver stub:
 ```bash
 process launch failed: unable to locate lldb-server
 ```
