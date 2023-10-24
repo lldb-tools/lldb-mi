@@ -31,7 +31,7 @@ mkdir llvm-inst
 mkdir llvm-build
 cd llvm-build
 
-cmake -DLLVM_ENABLE_PROJECTS="clang;lldb" -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi" -DCMAKE_INSTALL_PREFIX=~/buildspace/llvm-inst/ -GNinja ../llvm-project/llvm
+cmake -DLLVM_ENABLE_PROJECTS="clang;lldb" -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi" -DCMAKE_INSTALL_PREFIX=~/buildspace/llvm-inst/ -DLLVM_BUILD_LLVM_DYLIB=On -DCMAKE_BUILD_TYPE=Release -GNinja ../llvm-project/llvm
 ninja
 ninja install
 
