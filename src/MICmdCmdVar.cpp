@@ -304,7 +304,8 @@ void CMICmdCmdVarCreate::CompleteSBValue(lldb::SBValue &vrwValue) {
   // And update its children
   lldb::SBType valueType = vrwValue.GetType();
   if (!valueType.IsPointerType() && !valueType.IsReferenceType()) {
-    const MIuint nChildren = vrwValue.GetNumChildren();
+    const auto temp = vrwValue.GetNumChildren();
+    const MIuint nChildren = temp > 64 ? 64 : temp;
     for (MIuint i = 0; i < nChildren; ++i) {
       lldb::SBValue member = vrwValue.GetChildAtIndex(i);
       if (member.IsValid())
@@ -597,7 +598,8 @@ bool CMICmdCmdVarUpdate::ExamineSBValueForChange(lldb::SBValue &vrwValue,
     return MIstatus::success;
   }
 
-  const MIuint nChildren = vrwValue.GetNumChildren();
+  const auto temp = vrwValue.GetNumChildren();
+  const MIuint nChildren = temp > 64 ? 64 : temp;
   for (MIuint i = 0; i < nChildren; ++i) {
     lldb::SBValue member = vrwValue.GetChildAtIndex(i);
     if (!member.IsValid())
