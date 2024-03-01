@@ -263,7 +263,7 @@ bool CMICmdCmdTargetAttach::Execute() {
       CMICmnLLDBDebugSessionInfo::Instance());
 
   // If the current target is invalid, create one
-  lldb::SBTarget target = rSessionInfo.GetTarget();
+  lldb::SBTarget target = rSessionInfo.GetDebugger().GetSelectedTarget();
   if (!target.IsValid()) {
     target = rSessionInfo.GetDebugger().CreateTarget(nullptr);
     if (!target.IsValid()) {
