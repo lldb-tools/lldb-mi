@@ -300,18 +300,8 @@ CMICmdBase *CMICmdCmdVarCreate::CreateSelf() {
 void CMICmdCmdVarCreate::CompleteSBValue(lldb::SBValue &vrwValue) {
   // Force a value to update
   vrwValue.GetValueDidChange();
-
-  // And update its children
-  lldb::SBType valueType = vrwValue.GetType();
-  if (!valueType.IsPointerType() && !valueType.IsReferenceType()) {
-    const auto temp = vrwValue.GetNumChildren();
-    const MIuint nChildren = temp > 64 ? 64 : temp;
-    for (MIuint i = 0; i < nChildren; ++i) {
-      lldb::SBValue member = vrwValue.GetChildAtIndex(i);
-      if (member.IsValid())
-        CompleteSBValue(member);
-    }
-  }
+  // Do not traverse the Children values. For reference, see
+  // https://github.com/lldb-tools/lldb-mi/pull/115#discussion_r1706360623.
 }
 
 //++
@@ -588,33 +578,10 @@ void CMICmdCmdVarUpdate::MIFormResponse(const CMIUtilString &vrStrVarName,
 //--
 bool CMICmdCmdVarUpdate::ExamineSBValueForChange(lldb::SBValue &vrwValue,
                                                  bool &vrwbChanged) {
-  // Note SBValue::GetValueDidChange() returns false if value changes from
-  // invalid (for example if it represents a field of a structure, and
-  // structure is pointed at with a NULL pointer) to a valid value, which is not
-  // a desired result for -var-update changelist - it will miss case of
-  // invalid-to-valid change.
-  if (vrwValue.GetValueDidChange()) {
-    vrwbChanged = true;
-    return MIstatus::success;
-  }
+  vrwbChanged = vrwValue.GetValueDidChange();
+  // Do not traverse the Children values. For reference, see
+  // https://github.com/lldb-tools/lldb-mi/pull/115#discussion_r1706367538.
 
-  const auto temp = vrwValue.GetNumChildren();
-  const MIuint nChildren = temp > 64 ? 64 : temp;
-  for (MIuint i = 0; i < nChildren; ++i) {
-    lldb::SBValue member = vrwValue.GetChildAtIndex(i);
-    if (!member.IsValid())
-      continue;
-
-    // skip pointers and references to avoid infinite loop
-    if (member.GetType().GetTypeFlags() &
-        (lldb::eTypeIsPointer | lldb::eTypeIsReference))
-      continue;
-
-    // Handle composite types (i.e. struct or arrays)
-    if (ExamineSBValueForChange(member, vrwbChanged) && vrwbChanged)
-      return MIstatus::success;
-  }
-  vrwbChanged = false;
   return MIstatus::success;
 }
 
