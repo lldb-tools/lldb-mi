@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.13)
 
 include(FetchContent)
 FetchContent_Declare(gtest
   QUIET
-  URL https://github.com/google/googletest/archive/refs/tags/release-1.11.0.zip
+  URL https://github.com/google/googletest/releases/download/v1.16.0/googletest-1.16.0.tar.gz
 )
 
 # Prevent overriding the parent project's linker settings, for Windows.
