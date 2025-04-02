@@ -249,8 +249,7 @@ bool CMICmdBase::HandleSBErrorWithSuccess(
 //--
 bool CMICmdBase::HandleSBErrorWithFailure(
     const lldb::SBError &error, const std::function<void()> &errorHandler) {
-  return HandleSBError(
-      error, [] { return MIstatus::success; }, errorHandler);
+  return HandleSBError(error, [] { return MIstatus::success; }, errorHandler);
 }
 
 //++
@@ -262,7 +261,7 @@ bool CMICmdBase::HandleSBErrorWithFailure(
 //--
 MIuint CMICmdBase::GetGUID() {
   MIuint64 vptr = reinterpret_cast<MIuint64>(this);
-  MIuint id = (vptr)&0xFFFFFFFF;
+  MIuint id = (vptr) & 0xFFFFFFFF;
   id ^= (vptr >> 32) & 0xFFFFFFFF;
 
   return id;
