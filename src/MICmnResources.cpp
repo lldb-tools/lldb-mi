@@ -88,6 +88,10 @@ const CMICmnResources::SRsrcTextData
         {IDE_MI_APP_ARG_VERSION_LONG, "--versionLong\n\tPrints out MI Driver "
                                       "version information. Exit the MI "
                                       "Driver\n\timmediately."},
+        {IDE_MI_APP_ARG_VERSION_FULL, "--versionFull\n\tPrints out MI Driver "
+                                      "full version information including lldb"
+                                      " llvm clang versions. Exit the MI "
+                                      "Driver\n\timmediately."},
         {IDE_MI_APP_ARG_INTERPRETER, "--interpreter\n\t This option is kept "
                                      "for backward compatibility. This "
                                      "executable always run in MI mode"},
