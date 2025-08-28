@@ -1283,7 +1283,7 @@ CMICmdBase *CMICmdCmdDataListRegisterChanged::CreateSelf() {
 // Throws:  None.
 //--
 CMICmdCmdDataWriteMemoryBytes::CMICmdCmdDataWriteMemoryBytes()
-    : m_constStrArgAddr("address"), m_constStrArgContents("contents"),
+    : m_constStrArgAddrExpr("address"), m_constStrArgContents("contents"),
       m_constStrArgCount("count") {
   // Command factory matches this name with that received from the stdin stream
   m_strMiCmd = "data-write-memory-bytes";
@@ -1313,11 +1313,10 @@ CMICmdCmdDataWriteMemoryBytes::~CMICmdCmdDataWriteMemoryBytes() {}
 //--
 bool CMICmdCmdDataWriteMemoryBytes::ParseArgs() {
   m_setCmdArgs.Add(
-      new CMICmdArgValString(m_constStrArgAddr, true, true, false, true));
+      new CMICmdArgValString(m_constStrArgAddrExpr, true, true, false, true));
   m_setCmdArgs.Add(
       new CMICmdArgValString(m_constStrArgContents, true, true, true, true));
-  m_setCmdArgs.Add(
-      new CMICmdArgValString(m_constStrArgCount, false, true, false, true));
+  m_setCmdArgs.Add(new CMICmdArgValNumber(m_constStrArgCount, false, true));
   return ParseValidateCmdOptions();
 }
 
@@ -1333,14 +1332,113 @@ bool CMICmdCmdDataWriteMemoryBytes::ParseArgs() {
 // Throws:  None.
 //--
 bool CMICmdCmdDataWriteMemoryBytes::Execute() {
-  // Do nothing - not reproduceable (yet) in Eclipse
-  // CMICMDBASE_GETOPTION( pArgOffset, OptionShort, m_constStrArgOffset );
-  // CMICMDBASE_GETOPTION( pArgAddr, String, m_constStrArgAddr );
-  // CMICMDBASE_GETOPTION( pArgNumber, String, m_constStrArgNumber );
-  // CMICMDBASE_GETOPTION( pArgContents, String, m_constStrArgContents );
-  //
-  // Numbers extracts as string types as they could be hex numbers
-  // '&' is not recognised and so has to be removed
+  CMICMDBASE_GETOPTION(pArgThread, OptionLong, m_constStrArgThread);
+  CMICMDBASE_GETOPTION(pArgFrame, OptionLong, m_constStrArgFrame);
+  CMICMDBASE_GETOPTION(pArgAddrExpr, String, m_constStrArgAddrExpr);
+  CMICMDBASE_GETOPTION(pArgContents, String, m_constStrArgContents);
+  CMICMDBASE_GETOPTION(pArgCount, Number, m_constStrArgCount);
+
+  // get the --thread option value
+  MIuint64 nThreadId = UINT64_MAX;
+  if (pArgThread->GetFound() &&
+      !pArgThread->GetExpectedOption<CMICmdArgValNumber, MIuint64>(nThreadId)) {
+    SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_OPTION_NOT_FOUND),
+                                   m_cmdData.strMiCmd.c_str(),
+                                   m_constStrArgThread.c_str()));
+    return MIstatus::failure;
+  }
+
+  // get the --frame option value
+  MIuint64 nFrame = UINT64_MAX;
+  if (pArgFrame->GetFound() &&
+      !pArgFrame->GetExpectedOption<CMICmdArgValNumber, MIuint64>(nFrame)) {
+    SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_OPTION_NOT_FOUND),
+                                   m_cmdData.strMiCmd.c_str(),
+                                   m_constStrArgFrame.c_str()));
+    return MIstatus::failure;
+  }
+
+  CMICmnLLDBDebugSessionInfo &rSessionInfo(
+      CMICmnLLDBDebugSessionInfo::Instance());
+  lldb::SBProcess sbProcess = rSessionInfo.GetProcess();
+  if (!sbProcess.IsValid()) {
+    SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_INVALID_PROCESS),
+                                   m_cmdData.strMiCmd.c_str()));
+    return MIstatus::failure;
+  }
+
+  lldb::SBThread thread = (nThreadId != UINT64_MAX)
+                              ? sbProcess.GetThreadByIndexID(nThreadId)
+                              : sbProcess.GetSelectedThread();
+  if (!thread.IsValid()) {
+    SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_THREAD_INVALID),
+                                   m_cmdData.strMiCmd.c_str()));
+    return MIstatus::failure;
+  }
+
+  lldb::SBFrame frame = (nFrame != UINT64_MAX) ? thread.GetFrameAtIndex(nFrame)
+                                               : thread.GetSelectedFrame();
+  if (!frame.IsValid()) {
+    SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_FRAME_INVALID),
+                                   m_cmdData.strMiCmd.c_str()));
+    return MIstatus::failure;
+  }
+
+  const CMIUtilString &rAddrExpr = pArgAddrExpr->GetValue();
+  lldb::SBValue addrExprValue = frame.EvaluateExpression(rAddrExpr.c_str());
+  lldb::SBError error = addrExprValue.GetError();
+  if (error.Fail()) {
+    SetError(error.GetCString());
+    return MIstatus::failure;
+  } else if (!addrExprValue.IsValid()) {
+    SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_EXPR_INVALID),
+                                   rAddrExpr.c_str()));
+    return MIstatus::failure;
+  }
+
+  MIuint64 nAddrStart = 0;
+  if (!CMICmnLLDBProxySBValue::GetValueAsUnsigned(addrExprValue, nAddrStart)) {
+    SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_EXPR_INVALID),
+                                   rAddrExpr.c_str()));
+    return MIstatus::failure;
+  }
+
+  const MIuint64 nContentSize = pArgContents->GetValue().length() / 2;
+  const MIuint64 nBufferSize =
+      pArgCount->GetFound() ? pArgCount->GetValue() : nContentSize;
+  unsigned char *pBufferMemory = new unsigned char[nBufferSize];
+  if (pBufferMemory == nullptr) {
+    SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_MEMORY_ALLOC_FAILURE),
+                                   m_cmdData.strMiCmd.c_str(), nBufferSize));
+    return MIstatus::failure;
+  }
+
+  for (MIuint64 i = 0; i < nBufferSize; i++) {
+    const CMIUtilString byteStr =
+        pArgContents->GetValue().substr((i % nContentSize) * 2, 2);
+    pBufferMemory[i] = ::strtoul(byteStr.c_str(), nullptr, 16);
+  }
+
+  MIuint64 nWritten = sbProcess.WriteMemory(
+      static_cast<lldb::addr_t>(nAddrStart), pBufferMemory, nBufferSize, error);
+  delete[] pBufferMemory;
+
+  if (nWritten != nBufferSize) {
+    SetError(CMIUtilString::Format(
+        MIRSRC(IDS_CMD_ERR_LLDB_ERR_NOT_WRITE_WHOLEBLK),
+        m_cmdData.strMiCmd.c_str(), nBufferSize, nAddrStart));
+    return MIstatus::failure;
+  }
+
+  if (error.Fail()) {
+    lldb::SBStream err;
+    const bool bOk = error.GetDescription(err);
+    MIunused(bOk);
+    SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_LLDB_ERR_WRITE_MEM_BYTES),
+                                   m_cmdData.strMiCmd.c_str(), nBufferSize,
+                                   nAddrStart, err.GetData()));
+    return MIstatus::failure;
+  }
 
   return MIstatus::success;
 }
@@ -1356,11 +1454,8 @@ bool CMICmdCmdDataWriteMemoryBytes::Execute() {
 // Throws:  None.
 //--
 bool CMICmdCmdDataWriteMemoryBytes::Acknowledge() {
-  const CMICmnMIValueConst miValueConst(MIRSRC(IDS_WORD_NOT_IMPLEMENTED));
-  const CMICmnMIValueResult miValueResult("msg", miValueConst);
   const CMICmnMIResultRecord miRecordResult(
-      m_cmdData.strMiCmdToken, CMICmnMIResultRecord::eResultClass_Error,
-      miValueResult);
+      m_cmdData.strMiCmdToken, CMICmnMIResultRecord::eResultClass_Done);
   m_miResultRecord = miRecordResult;
 
   return MIstatus::success;
