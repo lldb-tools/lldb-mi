@@ -300,7 +300,7 @@ public:
 
   // Attributes:
 private:
-  const CMIUtilString m_constStrArgAddr;
+  const CMIUtilString m_constStrArgAddrExpr;
   const CMIUtilString m_constStrArgContents;
   const CMIUtilString m_constStrArgCount;
   CMIUtilString m_strContents;

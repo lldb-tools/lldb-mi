@@ -85,6 +85,7 @@ bool MICmnCommands::RegisterAll() {
   bOk &= Register<CMICmdCmdDataReadMemory>();
   bOk &= Register<CMICmdCmdDataListRegisterNames>();
   bOk &= Register<CMICmdCmdDataListRegisterValues>();
+  bOk &= Register<CMICmdCmdDataWriteMemoryBytes>();
   bOk &= Register<CMICmdCmdDataWriteMemory>();
   bOk &= Register<CMICmdCmdEnablePrettyPrinting>();
   bOk &= Register<CMICmdCmdEnvironmentCd>();
