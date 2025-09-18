@@ -290,11 +290,10 @@ bool CMICmdCmdTargetAttach::Execute() {
     return MIstatus::failure;
   }
 
-  lldb::SBStream errMsg;
   if (error.Fail()) {
     SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_ATTACH_FAILED),
                                    m_cmdData.strMiCmd.c_str(),
-                                   errMsg.GetData()));
+                                   error.GetCString()));
     return MIstatus::failure;
   }
 
