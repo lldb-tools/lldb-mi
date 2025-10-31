@@ -451,8 +451,13 @@ bool CMICmdCmdVarUpdate::Execute() {
   }
 
   lldb::SBValue &rValue = varObj.GetValue();
+  const bool bVarChanged = varObj.ExchangeChanged(false);
   if (!ExamineSBValueForChange(rValue, m_bValueChanged))
     return MIstatus::failure;
+
+  // SBValue changed state due to a -var-assign may have already been
+  // cleared so combine it with changed state held by the var object
+  m_bValueChanged |= bVarChanged;
 
   if (!m_bValueChanged) {
     CMICmnLLDBDebugSessionInfo &rSessionInfo(
@@ -747,10 +752,14 @@ bool CMICmdCmdVarAssign::Execute() {
   CMIUtilString strExpression(rExpression.Trim());
   strExpression = strExpression.Trim('"');
   lldb::SBValue &rValue(varObj.GetValue());
+  CMIUtilString strOldValue(rValue.GetValue());
   m_bOk = rValue.SetValueFromCString(strExpression.c_str());
-  if (m_bOk)
+  if (m_bOk) {
+    CMIUtilString strNewValue(rValue.GetValue());
+    const bool bVarChanged = !CMIUtilString::Compare(strOldValue, strNewValue);
+    varObj.ExchangeChanged(bVarChanged);
     varObj.UpdateValue();
-
+  }
   return MIstatus::success;
 }
 

@@ -36,7 +36,7 @@ CMICmnLLDBDebugSessionInfoVarObj::varFormat_e
 //--
 CMICmnLLDBDebugSessionInfoVarObj::CMICmnLLDBDebugSessionInfoVarObj()
     : m_eVarFormat(eVarFormat_Natural), m_eVarType(eVarType_Internal),
-      m_eValObjKind(valObjKind_ec::eValObjKind_Other) {
+      m_eValObjKind(valObjKind_ec::eValObjKind_Other), m_bChanged(false) {
   // Do not call UpdateValue() in here as not necessary
 }
 
@@ -56,7 +56,7 @@ CMICmnLLDBDebugSessionInfoVarObj::CMICmnLLDBDebugSessionInfoVarObj(
     const lldb::SBValue &vrValue, const valObjKind_ec eValObjKind)
     : m_eVarFormat(eVarFormat_Natural), m_eVarType(eVarType_Internal),
       m_eValObjKind(eValObjKind), m_strName(vrStrName), m_SBValue(vrValue),
-      m_strNameReal(vrStrNameReal) {
+      m_strNameReal(vrStrNameReal), m_bChanged(false) {
   UpdateValue();
 }
 
@@ -80,7 +80,7 @@ CMICmnLLDBDebugSessionInfoVarObj::CMICmnLLDBDebugSessionInfoVarObj(
     : m_eVarFormat(eVarFormat_Natural), m_eVarType(eVarType_Internal),
       m_eValObjKind(eValObjKind), m_strName(vrStrName), m_SBValue(vrValue),
       m_strNameReal(vrStrNameReal),
-      m_strVarObjParentName(vrStrVarObjParentName) {
+      m_strVarObjParentName(vrStrVarObjParentName), m_bChanged(false) {
   UpdateValue();
 }
 
@@ -159,6 +159,7 @@ void CMICmnLLDBDebugSessionInfoVarObj::CopyOther(
   m_strNameReal = vrOther.m_strNameReal;
   m_strFormattedValue = vrOther.m_strFormattedValue;
   m_strVarObjParentName = vrOther.m_strVarObjParentName;
+  m_bChanged = vrOther.m_bChanged;
 }
 
 //++
@@ -178,6 +179,7 @@ void CMICmnLLDBDebugSessionInfoVarObj::MoveOther(
   m_strNameReal = std::move(vrwOther.m_strNameReal);
   m_strFormattedValue = std::move(vrwOther.m_strFormattedValue);
   m_strVarObjParentName = std::move(vrwOther.m_strVarObjParentName);
+  m_bChanged = vrwOther.m_bChanged;
 
   vrwOther.m_eVarFormat = eVarFormat_Natural;
   vrwOther.m_eVarType = eVarType_Internal;
@@ -187,6 +189,7 @@ void CMICmnLLDBDebugSessionInfoVarObj::MoveOther(
   vrwOther.m_strNameReal.clear();
   vrwOther.m_strFormattedValue.clear();
   vrwOther.m_strVarObjParentName.clear();
+  vrwOther.m_bChanged = false;
 }
 
 //++
@@ -537,6 +540,19 @@ void CMICmnLLDBDebugSessionInfoVarObj::UpdateValue() {
     m_eVarType = eVarType_Composite;
 
   CMICmnLLDBDebugSessionInfoVarObj::VarObjUpdate(*this);
+}
+
+//++
+// Details: Set the changed state of the var object.
+// Type:    Method.
+// Args:    bChanged - New changed state.
+// Returns: m_bChanged - Previous changed state.
+// Throws:  None.
+//--
+bool CMICmnLLDBDebugSessionInfoVarObj::ExchangeChanged(const bool bChanged) {
+  const bool bPreviousChanged = m_bChanged;
+  m_bChanged = bChanged;
+  return bPreviousChanged;
 }
 
 //++

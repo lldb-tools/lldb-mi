@@ -106,6 +106,7 @@ public:
   const CMIUtilString &GetVarParentName() const;
   valObjKind_ec GetValObjKind() const;
   void UpdateValue();
+  bool ExchangeChanged(const bool bChanged);
 
   // Overridden:
 public:
@@ -148,6 +149,7 @@ private:
   CMIUtilString m_strNameReal;
   CMIUtilString m_strFormattedValue;
   CMIUtilString m_strVarObjParentName;
+  bool m_bChanged;
   // *** Update the copy move constructors and assignment operator ***
 };
 
