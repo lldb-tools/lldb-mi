@@ -67,3 +67,33 @@ private:
   bool m_bHasCurrentThread;
   CMICmnMIValue m_miValueCurrThreadId;
 };
+
+//++
+//============================================================================
+// Details: MI command class. MI commands derived from the command base class.
+//          *this class implements MI command "thread-select".
+//--
+class CMICmdCmdThreadSelect : public CMICmdBase {
+  // Statics:
+public:
+  // Required by the CMICmdFactory when registering *this command
+  static CMICmdBase *CreateSelf();
+
+  // Methods:
+public:
+  /* ctor */ CMICmdCmdThreadSelect();
+
+  // Overridden:
+public:
+  // From CMICmdInvoker::ICmd
+  bool Execute() override;
+  bool Acknowledge() override;
+  bool ParseArgs() override;
+  // From CMICmnBase
+  /* dtor */ ~CMICmdCmdThreadSelect() override;
+
+  // Attributes:
+private:
+  bool m_bThreadInvalid; // True = invalid, false = ok
+  const CMIUtilString m_constStrArgNamedThreadId;
+};

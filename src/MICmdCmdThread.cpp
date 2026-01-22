@@ -209,3 +209,107 @@ bool CMICmdCmdThreadInfo::Acknowledge() {
 CMICmdBase *CMICmdCmdThreadInfo::CreateSelf() {
   return new CMICmdCmdThreadInfo();
 }
+
+//++
+// Details: CMICmdCmdThreadSelect constructor.
+// Type:    Method.
+// Args:    None.
+// Return:  None.
+// Throws:  None.
+//--
+CMICmdCmdThreadSelect::CMICmdCmdThreadSelect()
+    : m_bThreadInvalid(true), m_constStrArgNamedThreadId("thread-id") {
+  // Command factory matches this name with that received from the stdin stream
+  m_strMiCmd = "thread-select";
+
+  // Required by the CMICmdFactory when registering *this command
+  m_pSelfCreatorFn = &CMICmdCmdThreadSelect::CreateSelf;
+}
+
+//++
+// Details: CMICmdCmdThreadSelect destructor.
+// Type:    Overrideable.
+// Args:    None.
+// Return:  None.
+// Throws:  None.
+//--
+CMICmdCmdThreadSelect::~CMICmdCmdThreadSelect() {}
+
+//++
+// Details: The invoker requires this function. The parses the command line
+// options
+//          arguments to extract values for each of those arguments.
+// Type:    Overridden.
+// Args:    None.
+// Return:  MIstatus::success - Functional succeeded.
+//          MIstatus::failure - Functional failed.
+// Throws:  None.
+//--
+bool CMICmdCmdThreadSelect::ParseArgs() {
+  m_setCmdArgs.Add(
+      new CMICmdArgValNumber(m_constStrArgNamedThreadId, true, true));
+  return ParseValidateCmdOptions();
+}
+
+//++
+// Details: The invoker requires this function. The command does work in this
+// function.
+//          The command is likely to communicate with the LLDB SBDebugger in
+//          here.
+// Type:    Overridden.
+// Args:    None.
+// Return:  MIstatus::success - Functional succeeded.
+//          MIstatus::failure - Functional failed.
+// Throws:  None.
+//--
+bool CMICmdCmdThreadSelect::Execute() {
+  CMICMDBASE_GETOPTION(pArgThreadId, Number, m_constStrArgNamedThreadId);
+  const MIuint nThreadId = static_cast<MIuint>(pArgThreadId->GetValue());
+
+  CMICmnLLDBDebugSessionInfo &rSessionInfo(
+      CMICmnLLDBDebugSessionInfo::Instance());
+  lldb::SBProcess sbProcess = rSessionInfo.GetProcess();
+  m_bThreadInvalid = !sbProcess.SetSelectedThreadByIndexID(nThreadId);
+  return MIstatus::success;
+}
+
+//++
+// Details: The invoker requires this function. The command prepares a MI Record
+// Result
+//          for the work carried out in the Execute().
+// Type:    Overridden.
+// Args:    None.
+// Return:  MIstatus::success - Functional succeeded.
+//          MIstatus::failure - Functional failed.
+// Throws:  None.
+//--
+bool CMICmdCmdThreadSelect::Acknowledge() {
+  if (m_bThreadInvalid) {
+    const CMICmnMIValueConst miValueConst("invalid thread id");
+    const CMICmnMIValueResult miValueResult("msg", miValueConst);
+    const CMICmnMIResultRecord miRecordResult(
+        m_cmdData.strMiCmdToken, CMICmnMIResultRecord::eResultClass_Error,
+        miValueResult);
+    m_miResultRecord = miRecordResult;
+    return MIstatus::success;
+  }
+
+  const CMICmnMIResultRecord miRecordResult(
+      m_cmdData.strMiCmdToken, CMICmnMIResultRecord::eResultClass_Done);
+  m_miResultRecord = miRecordResult;
+
+  return MIstatus::success;
+}
+
+//++
+// Details: Required by the CMICmdFactory when registering *this command. The
+// factory
+//          calls this function to create an instance of *this command.
+// Type:    Static method.
+// Args:    None.
+// Return:  CMICmdBase * - Pointer to a new command.
+// Throws:  None.
+//--
+CMICmdBase *CMICmdCmdThreadSelect::CreateSelf() {
+  return new CMICmdCmdThreadSelect();
+}
