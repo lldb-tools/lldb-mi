@@ -122,6 +122,7 @@ bool MICmnCommands::RegisterAll() {
   bOk &= Register<CMICmdCmdTargetAttach>();
   bOk &= Register<CMICmdCmdTargetDetach>();
   bOk &= Register<CMICmdCmdThreadInfo>();
+  bOk &= Register<CMICmdCmdThreadSelect>();
   bOk &= Register<CMICmdCmdVarAssign>();
   bOk &= Register<CMICmdCmdVarCreate>();
   bOk &= Register<CMICmdCmdVarDelete>();
