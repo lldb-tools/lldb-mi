@@ -424,17 +424,9 @@ bool CMICmnLLDBDebugSessionInfo::MIResponseFormThreadInfo(
   vwrMIValueTuple.Add(miValueResult1);
 
   // Add "target-id"
-  const char *pThreadName = rThread.GetName();
-  const MIuint len = CMIUtilString(pThreadName).length();
-  const bool bHaveName = (len > 0) && (len < 32) && // 32 is arbitrary number
-                         CMIUtilString::IsAllValidAlphaAndNumeric(pThreadName);
-  const char *pThrdFmt = bHaveName ? "%s" : "Thread %d";
-  CMIUtilString strThread;
-  if (bHaveName)
-    strThread = CMIUtilString::Format(pThrdFmt, pThreadName);
-  else
-    strThread = CMIUtilString::Format(pThrdFmt, rThread.GetIndexID());
-  const CMICmnMIValueConst miValueConst2(strThread);
+  CMIUtilString strTargetId =
+      CMIUtilString::Format("Thread %d", rThread.GetThreadID());
+  const CMICmnMIValueConst miValueConst2(strTargetId);
   const CMICmnMIValueResult miValueResult2("target-id", miValueConst2);
   vwrMIValueTuple.Add(miValueResult2);
 
@@ -453,6 +445,18 @@ bool CMICmnLLDBDebugSessionInfo::MIResponseFormThreadInfo(
   const CMICmnMIValueConst miValueConst4(strState);
   const CMICmnMIValueResult miValueResult4("state", miValueConst4);
   vwrMIValueTuple.Add(miValueResult4);
+
+  // Add "name"
+  const char *pThreadName = rThread.GetName();
+  CMIUtilString strThreadName(pThreadName);
+  const MIuint len = strThreadName.length();
+  const bool bHaveName = (len > 0) && (len < 32) && // 32 is arbitrary number
+                         CMIUtilString::IsAllValidAlphaAndNumeric(pThreadName);
+  if (bHaveName) {
+    const CMICmnMIValueConst miValueConst5(strThreadName);
+    const CMICmnMIValueResult miValueResult5("name", miValueConst5);
+    vwrMIValueTuple.Add(miValueResult5);
+  }
 
   return MIstatus::success;
 }
