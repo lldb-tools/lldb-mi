@@ -221,6 +221,7 @@ public:
   // Note: This list is expected to grow and will be moved and abstracted in the
   // future.
   const CMIUtilString m_constStrSharedDataKeyWkDir = "Working Directory";
+  const CMIUtilString m_constStrSharedDataKeyInferiorTty = "Inferior TTY";
   const CMIUtilString m_constStrSharedDataSolibPath = "Solib Path";
   const CMIUtilString m_constStrPrintCharArrayAsString =
       "Print CharArrayAsString";

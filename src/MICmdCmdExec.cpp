@@ -126,7 +126,37 @@ bool CMICmdCmdExecRun::Execute() {
                               lldb::eLaunchFlagCloseTTYOnExit);
   }
 
-  lldb::SBProcess process = rSessionInfo.GetTarget().Launch(launchInfo, error);
+  lldb::SBProcess process;
+  CMIUtilString strInferiorTty;
+  const bool bInferiorTty = rSessionInfo.SharedDataRetrieve<CMIUtilString>(
+      rSessionInfo.m_constStrSharedDataKeyInferiorTty, strInferiorTty);
+  if (bInferiorTty) { // if inferior TTY is specified
+    // collect launch parameters for alternative SBTarget::Launch method
+    lldb::SBListener listener = rSessionInfo.GetDebugger().GetListener();
+    const char *inferiorTty = strInferiorTty.c_str();
+    CMIUtilString strWkDir;
+    const bool bWkDir = rSessionInfo.SharedDataRetrieve<CMIUtilString>(
+        rSessionInfo.m_constStrSharedDataKeyWkDir, strWkDir);
+    const char *workingDirectory = bWkDir ? strWkDir.c_str() : nullptr;
+    const uint32_t launchFlags = launchInfo.GetLaunchFlags();
+    const uint32_t argvNum = launchInfo.GetNumArguments();
+    std::vector<const char *> argv;
+    for (uint32_t n = 0; n < argvNum; n++) {
+      argv.push_back(launchInfo.GetArgumentAtIndex(n));
+    }
+    argv.push_back(nullptr);
+    const uint32_t envpNum = launchInfo.GetNumEnvironmentEntries();
+    std::vector<const char *> envp;
+    for (uint32_t n = 0; n < envpNum; n++) {
+      envp.push_back(launchInfo.GetEnvironmentEntryAtIndex(n));
+    }
+    envp.push_back(nullptr);
+    process = rSessionInfo.GetTarget().Launch(
+        listener, argv.data(), envp.data(), inferiorTty, inferiorTty,
+        inferiorTty, workingDirectory, launchFlags, false, error);
+  } else { // inferior TTY is not specified
+    process = rSessionInfo.GetTarget().Launch(launchInfo, error);
+  }
   if (!process.IsValid()) {
     SetError(CMIUtilString::Format(MIRSRC(IDS_CMD_ERR_INVALID_PROCESS),
                                    m_cmdData.strMiCmd.c_str(),

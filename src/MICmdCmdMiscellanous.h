@@ -151,6 +151,11 @@ public:
   // From CMICmdInvoker::ICmd
   bool Execute() override;
   bool Acknowledge() override;
+  bool ParseArgs() override;
   // From CMICmnBase
   /* dtor */ ~CMICmdCmdInferiorTtySet() override;
+
+  // Attributes:
+private:
+  const CMIUtilString m_constStrArgInferiorTty;
 };

@@ -538,6 +538,22 @@ CMICmdCmdInferiorTtySet::CMICmdCmdInferiorTtySet() {
 CMICmdCmdInferiorTtySet::~CMICmdCmdInferiorTtySet() {}
 
 //++
+// Details: The invoker requires this function. The parses the command line
+// options
+//          arguments to extract values for each of those arguments.
+// Type:    Overridden.
+// Args:    None.
+// Return:  MIstatus::success - Functional succeeded.
+//          MIstatus::failure - Functional failed.
+// Throws:  None.
+//--
+bool CMICmdCmdInferiorTtySet::ParseArgs() {
+  m_setCmdArgs.Add(new CMICmdArgValFile(m_constStrArgInferiorTty, true, true));
+  CMICmdArgContext argCntxt(m_cmdData.strMiCmdOption);
+  return ParseValidateCmdOptions();
+}
+
+//++
 // Details: The invoker requires this function. The command does work in this
 // function.
 //          The command is likely to communicate with the LLDB SBDebugger in
@@ -549,8 +565,17 @@ CMICmdCmdInferiorTtySet::~CMICmdCmdInferiorTtySet() {}
 // Throws:  None.
 //--
 bool CMICmdCmdInferiorTtySet::Execute() {
-  // Do nothing
-
+  CMICMDBASE_GETOPTION(pArgInferiorTty, File, m_constStrArgInferiorTty);
+  const CMIUtilString &strInferiorTty(pArgInferiorTty->GetValue());
+  const CMIUtilString &rStrKeyInferiorTty(
+      m_rLLDBDebugSessionInfo.m_constStrSharedDataKeyInferiorTty);
+  if (!m_rLLDBDebugSessionInfo.SharedDataAdd<CMIUtilString>(rStrKeyInferiorTty,
+                                                            strInferiorTty)) {
+    SetError(CMIUtilString::Format(MIRSRC(IDS_DBGSESSION_ERR_SHARED_DATA_ADD),
+                                   m_cmdData.strMiCmd.c_str(),
+                                   rStrKeyInferiorTty.c_str()));
+    return MIstatus::failure;
+  }
   return MIstatus::success;
 }
 
@@ -566,7 +591,7 @@ bool CMICmdCmdInferiorTtySet::Execute() {
 //--
 bool CMICmdCmdInferiorTtySet::Acknowledge() {
   const CMICmnMIResultRecord miRecordResult(
-      m_cmdData.strMiCmdToken, CMICmnMIResultRecord::eResultClass_Error);
+      m_cmdData.strMiCmdToken, CMICmnMIResultRecord::eResultClass_Done);
   m_miResultRecord = miRecordResult;
 
   return MIstatus::success;
