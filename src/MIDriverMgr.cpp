@@ -487,6 +487,7 @@ bool CMIDriverMgr::ParseArgs(const int argc, const char *argv[],
   bool bHaveArgInterpret = false;
   bool bHaveArgVersion = false;
   bool bHaveArgVersionLong = false;
+  bool bHaveArgVersionFull = false;
   bool bHaveArgLog = false;
   bool bHaveArgLogDir = false;
   bool bHaveArgHelp = false;
@@ -512,6 +513,9 @@ bool CMIDriverMgr::ParseArgs(const int argc, const char *argv[],
       }
       if ("--versionLong" == strArg) {
         bHaveArgVersionLong = true;
+      }
+      if ("--versionFull" == strArg) {
+        bHaveArgVersionFull = true;
       }
       if ("--log" == strArg) {
         bHaveArgLog = true;
@@ -552,6 +556,15 @@ bool CMIDriverMgr::ParseArgs(const int argc, const char *argv[],
     vwbExiting = true;
     bOk =
         bOk && CMICmnStreamStdout::Instance().WriteMIResponse(GetAppVersion());
+    return bOk;
+  }
+
+  // Todo: Make this the --version when the above --version version is removed
+  // Handle --versionlong option (ignore the --interpreter option if present)
+  if (bHaveArgVersionFull) {
+    vwbExiting = true;
+    bOk = (bOk &&
+           CMICmnStreamStdout::Instance().WriteMIResponse(GetAppVersionFull()));
     return bOk;
   }
 
@@ -604,6 +617,23 @@ CMIUtilString CMIDriverMgr::GetAppVersion() const {
 }
 
 //++
+// Details: Return formatted application version and name information.
+// Type:    Method.
+// Args:    None.
+// Return:  CMIUtilString - Text data.
+// Throws:  None.
+//--
+CMIUtilString CMIDriverMgr::GetAppVersionFull() const {
+  const CMIUtilString strProj(MIRSRC(IDS_PROJNAME));
+  const CMIUtilString strVn(CMIDriver::Instance().GetVersionDescriptionFull());
+  const CMIUtilString strGdb(MIRSRC(IDE_MI_VERSION_GDB));
+  const CMIUtilString strVrsnInfo(CMIUtilString::Format(
+      "%s\n%s\n%s", strProj.c_str(), strVn.c_str(), strGdb.c_str()));
+
+  return strVrsnInfo;
+}
+
+//++
 // Details: Return formatted help information on all the MI command line
 // options.
 // Type:    Method.
@@ -619,6 +649,7 @@ CMIUtilString CMIDriverMgr::GetHelpOnCmdLineArgOptions() const {
       MIRSRC(IDE_MI_APP_ARG_HELP),
       MIRSRC(IDE_MI_APP_ARG_VERSION),
       MIRSRC(IDE_MI_APP_ARG_VERSION_LONG),
+      MIRSRC(IDE_MI_APP_ARG_VERSION_FULL),
       MIRSRC(IDE_MI_APP_ARG_INTERPRETER),
       MIRSRC(IDE_MI_APP_ARG_SOURCE),
       MIRSRC(IDE_MI_APP_ARG_EXECUTEABLE),

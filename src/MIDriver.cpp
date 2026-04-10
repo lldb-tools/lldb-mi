@@ -41,6 +41,7 @@ const CMIUtilString CMIDriver::ms_constMIVersion =
 const CMIUtilString
     CMIDriver::ms_constAppNameShort(MIRSRC(IDS_MI_APPNAME_SHORT));
 const CMIUtilString CMIDriver::ms_constAppNameLong(MIRSRC(IDS_MI_APPNAME_LONG));
+CMIUtilString CMIDriver::ms_MIVersionFull = "";
 
 //++
 // Details: CMIDriver constructor.
@@ -132,6 +133,21 @@ const CMIUtilString &CMIDriver::GetAppNameLong() const {
 //--
 const CMIUtilString &CMIDriver::GetVersionDescription() const {
   return ms_constMIVersion;
+}
+
+//++
+// Details: Retrive MI's lldb version decription.
+// Type:    Method.
+// Args:    None.
+// Return:  CMIUtilString & - Text description.
+// Throws:  None.
+//--
+const CMIUtilString &CMIDriver::GetVersionDescriptionFull() {
+  if (ms_MIVersionFull == "") {
+    ms_MIVersionFull =
+        CMICmnLLDBDebugSessionInfo::Instance().GetDebugger().GetVersionString();
+  }
+  return ms_MIVersionFull;
 }
 
 //++
