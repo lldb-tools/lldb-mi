@@ -11,11 +11,13 @@
 #include <cerrno>
 #include <stdio.h>
 #include <string.h>
+#if defined(_MSC_VER)
+#include <share.h>
+#endif
 
 // In-house headers:
 #include "MICmnResources.h"
 #include "MIUtilFileStd.h"
-#include "lldb/Host/FileSystem.h"
 
 #include "llvm/Support/ConvertUTF.h"
 #include "llvm/Support/Errno.h"
