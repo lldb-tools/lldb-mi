@@ -15,6 +15,11 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options("-Wno-error=covered-switch-default")
 endif()
 
+if(MSVC)
+  # Disable warning "C++ exception handler used, but unwind semantics are not enabled".
+  add_compile_options("/wd4530")
+endif()
+
 FetchContent_MakeAvailable(gtest)
 
 include(GoogleTest)
