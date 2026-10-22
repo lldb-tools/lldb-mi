@@ -44,10 +44,10 @@
 #include "Platform.h"
 
 #if defined(_MSC_VER)
-#pragma warning(                                                               \
-    once : 4530) // Warning C4530: C++ exception handler used, but unwind
-                 // semantics are not enabled. Specify /EHsc
-#endif           // _MSC_VER
+#pragma warning(once                                                           \
+                : 4530) // Warning C4530: C++ exception handler used, but unwind
+                        // semantics are not enabled. Specify /EHsc
+#endif                  // _MSC_VER
 
 // CODETAG_IOR_SIGNALS
 //++
