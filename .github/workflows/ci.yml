@@ -40,8 +40,9 @@ jobs:
 
       - name: Install Ninja, LLVM, Clang and LLDB (Mac OS)
         run: |
-          brew install ninja llvm
-          echo "LLVM_CONFIG_PATH=$(brew --cellar llvm)/$(brew list --versions llvm | sed -E 's/llvm (.*)/\1/g')/lib/cmake/llvm" >> $GITHUB_ENV
+          brew install ninja llvm lldb
+          echo "LLVM_CONFIG_PATH=$(brew --prefix llvm)/lib/cmake/llvm" >> $GITHUB_ENV
+          echo "CMAKE_PREFIX_PATH=$(brew --prefix lldb)" >> $GITHUB_ENV
         if: matrix.os == 'macos-latest'
 
       - name: Install Ninja (Windows)
