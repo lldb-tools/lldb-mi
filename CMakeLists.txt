@@ -30,7 +30,7 @@ endif()
 # LLDB may be installed in a separate prefix from LLVM.
 find_path(LLDB_INCLUDE_DIR lldb/API/LLDB.h
   HINTS ${LLVM_INCLUDE_DIRS} ${LLVM_BUILD_MAIN_SRC_DIR}/../lldb/include
-  REQUIRED)
+  REQUIRED CMAKE_FIND_ROOT_PATH_BOTH)
 include_directories(${LLDB_INCLUDE_DIR})
 
 separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
