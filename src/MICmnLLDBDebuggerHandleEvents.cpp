@@ -1823,6 +1823,8 @@ bool CMICmnLLDBDebuggerHandleEvents::HandleProcessEventStateRunning() {
 //                          "=thread-group-exited,id=\"i1\",exit-code=\"0\""),
 //                          "*stopped,reason=\"exited-normally\"",
 //                          "(gdb)"
+//          A non-zero exit status is reported as in GDB, in octal with a
+//          leading zero and with reason=\"exited\" on the stopped record.
 // Type:    Method.
 // Args:    None.
 // Return:  MIstatus::success - Functionality succeeded.
@@ -1830,6 +1832,8 @@ bool CMICmnLLDBDebuggerHandleEvents::HandleProcessEventStateRunning() {
 // Throws:  None.
 //--
 bool CMICmnLLDBDebuggerHandleEvents::HandleProcessEventStateExited() {
+  const int exitStatus =
+      CMICmnLLDBDebugSessionInfo::Instance().GetProcess().GetExitStatus();
   const CMIUtilString strId(CMIUtilString::Format("%ld", 1));
   CMICmnMIValueConst miValueConst(strId);
   CMICmnMIValueResult miValueResult("id", miValueConst);
@@ -1844,19 +1848,27 @@ bool CMICmnLLDBDebuggerHandleEvents::HandleProcessEventStateExited() {
     CMICmnMIValueResult miValueResult3("id", miValueConst3);
     CMICmnMIOutOfBandRecord miOutOfBandRecord2(
         CMICmnMIOutOfBandRecord::eOutOfBand_ThreadGroupExited, miValueResult3);
-    lldb::SBProcess sbProcess =
-        CMICmnLLDBDebugSessionInfo::Instance().GetProcess();
     CMICmnMIValueConst miValueConst2(
-        CMIUtilString::Format("%d", sbProcess.GetExitStatus()));
+        exitStatus == 0
+            ? CMIUtilString("0")
+            : CMIUtilString::Format(
+                  "0%llo", static_cast<unsigned long long>(exitStatus)));
     CMICmnMIValueResult miValueResult2("exit-code", miValueConst2);
     miOutOfBandRecord2.Add(miValueResult2);
     bOk = bOk && MiOutOfBandRecordToStdout(miOutOfBandRecord2);
   }
   if (bOk) {
-    CMICmnMIValueConst miValueConst4("exited-normally");
+    CMICmnMIValueConst miValueConst4(exitStatus == 0 ? "exited-normally"
+                                                     : "exited");
     CMICmnMIValueResult miValueResult4("reason", miValueConst4);
     CMICmnMIOutOfBandRecord miOutOfBandRecord3(
         CMICmnMIOutOfBandRecord::eOutOfBand_Stopped, miValueResult4);
+    if (exitStatus != 0) {
+      CMICmnMIValueConst miValueConst5(
+          CMIUtilString::Format("0%o", static_cast<unsigned int>(exitStatus)));
+      CMICmnMIValueResult miValueResult5("exit-code", miValueConst5);
+      miOutOfBandRecord3.Add(miValueResult5);
+    }
     bOk = MiOutOfBandRecordToStdout(miOutOfBandRecord3);
   }
   bOk = bOk && CMICmnStreamStdout::WritePrompt();
