@@ -1844,7 +1844,10 @@ bool CMICmnLLDBDebuggerHandleEvents::HandleProcessEventStateExited() {
     CMICmnMIValueResult miValueResult3("id", miValueConst3);
     CMICmnMIOutOfBandRecord miOutOfBandRecord2(
         CMICmnMIOutOfBandRecord::eOutOfBand_ThreadGroupExited, miValueResult3);
-    CMICmnMIValueConst miValueConst2("0");
+    lldb::SBProcess sbProcess =
+        CMICmnLLDBDebugSessionInfo::Instance().GetProcess();
+    CMICmnMIValueConst miValueConst2(
+        CMIUtilString::Format("%d", sbProcess.GetExitStatus()));
     CMICmnMIValueResult miValueResult2("exit-code", miValueConst2);
     miOutOfBandRecord2.Add(miValueResult2);
     bOk = bOk && MiOutOfBandRecordToStdout(miOutOfBandRecord2);
