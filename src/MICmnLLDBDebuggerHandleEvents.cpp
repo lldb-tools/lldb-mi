@@ -1834,6 +1834,10 @@ bool CMICmnLLDBDebuggerHandleEvents::HandleProcessEventStateRunning() {
 bool CMICmnLLDBDebuggerHandleEvents::HandleProcessEventStateExited() {
   const int exitStatus =
       CMICmnLLDBDebugSessionInfo::Instance().GetProcess().GetExitStatus();
+  const CMIUtilString strExitCode(
+      exitStatus == 0 ? CMIUtilString("0")
+                      : CMIUtilString::Format(
+                            "0%o", static_cast<unsigned int>(exitStatus)));
   const CMIUtilString strId(CMIUtilString::Format("%ld", 1));
   CMICmnMIValueConst miValueConst(strId);
   CMICmnMIValueResult miValueResult("id", miValueConst);
@@ -1848,11 +1852,7 @@ bool CMICmnLLDBDebuggerHandleEvents::HandleProcessEventStateExited() {
     CMICmnMIValueResult miValueResult3("id", miValueConst3);
     CMICmnMIOutOfBandRecord miOutOfBandRecord2(
         CMICmnMIOutOfBandRecord::eOutOfBand_ThreadGroupExited, miValueResult3);
-    CMICmnMIValueConst miValueConst2(
-        exitStatus == 0
-            ? CMIUtilString("0")
-            : CMIUtilString::Format(
-                  "0%llo", static_cast<unsigned long long>(exitStatus)));
+    CMICmnMIValueConst miValueConst2(strExitCode);
     CMICmnMIValueResult miValueResult2("exit-code", miValueConst2);
     miOutOfBandRecord2.Add(miValueResult2);
     bOk = bOk && MiOutOfBandRecordToStdout(miOutOfBandRecord2);
@@ -1864,8 +1864,7 @@ bool CMICmnLLDBDebuggerHandleEvents::HandleProcessEventStateExited() {
     CMICmnMIOutOfBandRecord miOutOfBandRecord3(
         CMICmnMIOutOfBandRecord::eOutOfBand_Stopped, miValueResult4);
     if (exitStatus != 0) {
-      CMICmnMIValueConst miValueConst5(
-          CMIUtilString::Format("0%o", static_cast<unsigned int>(exitStatus)));
+      CMICmnMIValueConst miValueConst5(strExitCode);
       CMICmnMIValueResult miValueResult5("exit-code", miValueConst5);
       miOutOfBandRecord3.Add(miValueResult5);
     }
